@@ -1,0 +1,50 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Android
+*.iml
+.gradle/
+android/.gradle/
+android/local.properties
+android/.idea/
+android/*/build/
+android/build/
+android/**/*.apk
+android/**/*.aab
+android/**/*.ap_
+android/**/*.dex
+android/sample-app/build/
+*.keystore
+!debug.keystore
+
+# iOS
+ios/.build/
+ios/DerivedData/
+ios/*.xcworkspace/
+ios/*.xcuserdata/
+*.o
+*.a
+*.d
+
+# React Native
+react-native/node_modules/
+react-native/.expo/
+react-native/dist/
+react-native/build/
+react-native/coverage/
+react-native/*.log
+react-native/yarn.lock
+react-native/package-lock.json
+
+# IntelliJ / Android Studio
+.idea/
+*.iws
+out/
+
+# General
+*.log
+*.tmp
+.env
+.env.local

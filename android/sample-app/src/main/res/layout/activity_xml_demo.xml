@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <!-- Top app bar -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="XML Layout Demo"
+            app:navigationIcon="?attr/homeAsUpIndicator"
+            app:navigationContentDescription="Back" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="XML View-Based Integration"
+            android:textAppearance="?attr/textAppearanceHeadlineSmall"
+            android:gravity="center"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="This screen uses a traditional AppCompatActivity with an XML layout.\n\nFarmerChatFabView is placed directly in the layout — no Compose code required in the host app."
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:gravity="center"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Demonstrate programmatic openChat() as well -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOpenChatProgrammatic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Open Chat (programmatic)" />
+
+    </LinearLayout>
+
+    <!--
+        FarmerChatFabView — XML equivalent of the Compose FarmerChatFab.
+        Hosts the Compose FAB via ComposeView internally.
+        Requires host Activity to extend AppCompatActivity / ComponentActivity.
+    -->
+    <com.farmerchat.sdk.FarmerChatFabView
+        android:id="@+id/farmerChatFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        app:fc_label="Ask FarmerChat"
+        app:fc_extended="true" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

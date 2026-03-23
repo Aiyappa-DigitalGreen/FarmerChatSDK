@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Attributes for FarmerChatFabView (XML layout integration) -->
+    <declare-styleable name="FarmerChatFabView">
+        <!-- Label shown on the extended FAB. Defaults to FarmerChatConfig.fabLabel -->
+        <attr name="fc_label" format="string" />
+        <!-- Whether to show the extended (icon + text) FAB. Default: true -->
+        <attr name="fc_extended" format="boolean" />
+        <!-- Optional conversation ID to open directly -->
+        <attr name="fc_conversationId" format="string" />
+        <!-- FAB background color. Default: #2E7D32 (SDK green) -->
+        <attr name="fc_containerColor" format="color" />
+    </declare-styleable>
+</resources>
