@@ -73,7 +73,10 @@ class MyApp : Application() {
         // No access token, refresh token, or user ID needed from the host app.
         FarmerChatSdk.initialize(
             context = this,
-            config = FarmerChatConfig(baseUrl = "https://your-api-base-url.com/")
+            config = FarmerChatConfig(
+                sdkApiKey = "fc_live_your_key_here",
+                baseUrl = "https://your-api-base-url.com/"
+            )
         )
     }
 }
@@ -139,6 +142,7 @@ struct MyApp: App {
         // The SDK automatically calls initialize_user to obtain tokens.
         // No access token, refresh token, or user ID needed from the host app.
         try? FarmerChatSDK.shared.configure(FarmerChatConfig(
+            sdkApiKey: "fc_live_your_key_here",
             baseUrl: "https://your-api-base-url.com/"
         ))
     }
@@ -211,6 +215,7 @@ import { FarmerChatSDK } from 'farmer-chat-sdk'
 // The SDK automatically calls initialize_user to obtain tokens.
 // No access token, refresh token, or user ID needed from the host app.
 FarmerChatSDK.configure({
+  sdkApiKey: 'fc_live_your_key_here',
   baseUrl: 'https://your-api-base-url.com/',
 })
 ```
