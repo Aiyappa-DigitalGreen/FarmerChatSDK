@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -146,14 +147,9 @@ internal fun ChatScreen(
                         // Avatar circle with gradient
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(40.dp)
                                 .background(
-                                    brush = Brush.linearGradient(
-                                        colors = listOf(
-                                            extColors.topBarTitle.copy(alpha = 0.22f),
-                                            extColors.topBarTitle.copy(alpha = 0.10f)
-                                        )
-                                    ),
+                                    color = Color.White.copy(alpha = 0.22f),
                                     shape = CircleShape
                                 ),
                             contentAlignment = Alignment.Center
@@ -175,11 +171,11 @@ internal fun ChatScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = extColors.topBarTitle
                                 )
-                                // Online indicator
+                                // Online indicator — white dot visible on green top bar
                                 Surface(
-                                    modifier = Modifier.size(7.dp),
+                                    modifier = Modifier.size(8.dp),
                                     shape = CircleShape,
-                                    color = Color(0xFF4CAF50)
+                                    color = Color(0xFF69F0AE)
                                 ) {}
                             }
                             Text(
@@ -219,8 +215,10 @@ internal fun ChatScreen(
                         brush = Brush.linearGradient(
                             colors = listOf(
                                 extColors.topBarBackground,
-                                extColors.topBarBackground.copy(alpha = 0.92f)
-                            )
+                                extColors.topBarBackground.copy(alpha = 0.88f)
+                            ),
+                            start = Offset(0f, 0f),
+                            end = Offset(size.width, size.height)
                         )
                     )
                 }
