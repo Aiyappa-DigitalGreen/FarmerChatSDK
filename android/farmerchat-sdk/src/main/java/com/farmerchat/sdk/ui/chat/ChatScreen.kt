@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
@@ -41,6 +42,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -71,9 +74,7 @@ internal fun ChatScreen(
     val context = LocalContext.current
 
     val audioPlayback = remember { AudioPlayback() }
-    DisposableEffect(Unit) {
-        onDispose { audioPlayback.release() }
-    }
+    DisposableEffect(Unit) { onDispose { audioPlayback.release() } }
 
     LaunchedEffect(state.audioPlaybackUrl) {
         val url = state.audioPlaybackUrl
@@ -93,15 +94,13 @@ internal fun ChatScreen(
     var showVoiceSheet by remember { mutableStateOf(false) }
     var showImageSourceSheet by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
 
     var pendingMicAction by remember { mutableStateOf(false) }
     val micPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted && pendingMicAction) {
-            pendingMicAction = false
-            showVoiceSheet = true
-        }
+        if (granted && pendingMicAction) { pendingMicAction = false; showVoiceSheet = true }
         pendingMicAction = false
     }
 
@@ -109,10 +108,7 @@ internal fun ChatScreen(
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted && pendingCameraAction) {
-            pendingCameraAction = false
-            showImageSourceSheet = true
-        }
+        if (granted && pendingCameraAction) { pendingCameraAction = false; showImageSourceSheet = true }
         pendingCameraAction = false
     }
 
@@ -139,6 +135,7 @@ internal fun ChatScreen(
 
     val config = runCatching { FarmerChatSdk.config }.getOrNull()
     val extColors = LocalSdkExtendedColors.current
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     Scaffold(
         containerColor = extColors.chatBackground,
@@ -146,40 +143,49 @@ internal fun ChatScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // AI avatar in header
-                        val avatarEmoji = config?.aiAvatarEmoji ?: "🌱"
-                        Surface(
-                            modifier = Modifier.size(34.dp),
-                            shape = CircleShape,
-                            color = extColors.topBarTitle.copy(alpha = 0.15f)
+                        // Avatar circle with gradient
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        colors = listOf(
+                                            extColors.topBarTitle.copy(alpha = 0.22f),
+                                            extColors.topBarTitle.copy(alpha = 0.10f)
+                                        )
+                                    ),
+                                    shape = CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(text = avatarEmoji, fontSize = 16.sp)
-                            }
+                            Text(
+                                text = config?.aiAvatarEmoji ?: "🌱",
+                                fontSize = 18.sp
+                            )
                         }
                         Spacer(Modifier.width(10.dp))
                         Column {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)
+                                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(7.dp)
                             ) {
                                 Text(
                                     text = config?.chatTitle ?: "FarmerChat",
                                     style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
+                                    fontWeight = FontWeight.Bold,
                                     color = extColors.topBarTitle
                                 )
-                                // Online status dot
-                                Box(
-                                    modifier = Modifier
-                                        .size(7.dp)
-                                        .background(Color(0xFF4CAF50), CircleShape)
-                                )
+                                // Online indicator
+                                Surface(
+                                    modifier = Modifier.size(7.dp),
+                                    shape = CircleShape,
+                                    color = Color(0xFF4CAF50)
+                                ) {}
                             }
                             Text(
                                 text = config?.chatSubtitle ?: "AI Farm Assistant",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = extColors.topBarSubtitle,
+                                color = extColors.topBarTitle.copy(alpha = 0.72f),
                                 fontSize = 11.sp
                             )
                         }
@@ -206,9 +212,18 @@ internal fun ChatScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = extColors.topBarBackground,
-                    titleContentColor = extColors.topBarTitle
-                )
+                    containerColor = Color.Transparent
+                ),
+                modifier = Modifier.drawBehind {
+                    drawRect(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                extColors.topBarBackground,
+                                extColors.topBarBackground.copy(alpha = 0.92f)
+                            )
+                        )
+                    )
+                }
             )
         },
         bottomBar = {
@@ -220,23 +235,13 @@ internal fun ChatScreen(
                         val text = inputText.trim()
                         val imageUri = selectedImageUri
                         if (text.isBlank() && imageUri == null) return@ChatInputBar
-
                         when {
                             imageUri != null -> {
-                                viewModel.dispatch(
-                                    ChatAction.SendQuestionWithImage(
-                                        question = text,
-                                        imageUri = imageUri
-                                    )
-                                )
+                                viewModel.dispatch(ChatAction.SendQuestionWithImage(question = text, imageUri = imageUri))
                                 selectedImageUri = null
                             }
-                            state.messages.isEmpty() -> {
-                                viewModel.dispatch(ChatAction.InitializeWithQuestion(question = text))
-                            }
-                            else -> {
-                                viewModel.dispatch(ChatAction.SendFollowUpQuestion(question = text))
-                            }
+                            state.messages.isEmpty() -> viewModel.dispatch(ChatAction.InitializeWithQuestion(question = text))
+                            else -> viewModel.dispatch(ChatAction.SendFollowUpQuestion(question = text))
                         }
                         inputText = ""
                     },
@@ -256,22 +261,14 @@ internal fun ChatScreen(
         ) {
             when {
                 state.isLoading && state.messages.isEmpty() -> {
-                    Column {
-                        repeat(3) { ShimmerBlock() }
-                    }
+                    Column { repeat(3) { ShimmerBlock() } }
                 }
-
                 else -> {
                     ChatThreadContent(
                         state = state,
                         listState = listState,
                         onFollowUpSelected = { question, questionId ->
-                            viewModel.dispatch(
-                                ChatAction.SendFollowUpQuestion(
-                                    question = question,
-                                    followUpQuestionId = questionId
-                                )
-                            )
+                            viewModel.dispatch(ChatAction.SendFollowUpQuestion(question = question, followUpQuestionId = questionId))
                         },
                         onListenClick = {
                             if (state.isAudioPlaying) {
@@ -295,13 +292,7 @@ internal fun ChatScreen(
             onDismiss = { showVoiceSheet = false },
             onAudioCaptured = { base64, format, _ ->
                 showVoiceSheet = false
-                viewModel.dispatch(
-                    ChatAction.TranscribeAndSendAudio(
-                        audioBase64 = base64,
-                        audioFormat = format,
-                        audioUri = null
-                    )
-                )
+                viewModel.dispatch(ChatAction.TranscribeAndSendAudio(audioBase64 = base64, audioFormat = format, audioUri = null))
             }
         )
     }

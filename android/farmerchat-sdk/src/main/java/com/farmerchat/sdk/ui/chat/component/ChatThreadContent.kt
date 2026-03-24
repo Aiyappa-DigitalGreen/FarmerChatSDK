@@ -1,6 +1,7 @@
 package com.farmerchat.sdk.ui.chat.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalConfiguration
@@ -60,8 +62,7 @@ internal fun ChatThreadContent(
     LazyColumn(
         state = listState,
         modifier = modifier,
-        contentPadding = contentPadding,
-        reverseLayout = false
+        contentPadding = contentPadding
     ) {
         items(state.messages, key = { it.id }) { message ->
             when (message) {
@@ -88,9 +89,7 @@ internal fun ChatThreadContent(
                 }
 
                 is ChatMessage.LoadingPlaceholder -> {
-                    ChatLoadingContent(
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    )
+                    ChatLoadingContent(modifier = Modifier.padding(vertical = 4.dp))
                 }
             }
         }
@@ -120,84 +119,77 @@ private fun AiResponseBubble(
 ) {
     val extColors = LocalSdkExtendedColors.current
     val config = runCatching { FarmerChatSdk.config }.getOrNull()
-    val maxWidth = (LocalConfiguration.current.screenWidthDp * 0.88).dp
-    val r = (config?.bubbleCornerRadius ?: 16f).dp
-    val elevation = (config?.aiBubbleElevation ?: 1f).dp
-    val fontSize = (config?.messageFontSizeSp ?: 14f)
+    val maxWidth = (LocalConfiguration.current.screenWidthDp * 0.84).dp
+    val r = (config?.bubbleCornerRadius ?: 20f).dp
+    val fontSize = (config?.messageFontSizeSp ?: 15f)
     val avatarEmoji = config?.aiAvatarEmoji ?: "🌱"
     val avatarBg = extColors.aiAvatarBackground
+    val primaryColor = MaterialTheme.colorScheme.primary
+
+    // Pointer shape: all large corners except bottom-left (AI = left side)
+    val bubbleShape = RoundedCornerShape(
+        topStart = r,
+        topEnd = r,
+        bottomStart = 5.dp,
+        bottomEnd = r
+    )
 
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top
     ) {
-        // AI avatar with gradient ring
+        // Gradient avatar circle
         Box(
-            modifier = Modifier.size(40.dp),
+            modifier = Modifier
+                .size(38.dp)
+                .shadow(
+                    elevation = 3.dp,
+                    shape = CircleShape,
+                    spotColor = primaryColor.copy(alpha = 0.2f)
+                )
+                .clip(CircleShape)
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            primaryColor.copy(alpha = 0.85f),
+                            primaryColor.copy(alpha = 0.55f)
+                        )
+                    )
+                ),
             contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        brush = Brush.radialGradient(
-                            colors = listOf(
-                                avatarBg.copy(alpha = 0.30f),
-                                avatarBg.copy(alpha = 0.06f)
-                            )
-                        ),
-                        shape = CircleShape
-                    )
+            Text(
+                text = avatarEmoji,
+                fontSize = 18.sp
             )
-            Surface(
-                modifier = Modifier.size(32.dp),
-                shape = CircleShape,
-                color = avatarBg.copy(alpha = 0.22f)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = avatarEmoji,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 16.sp
-                    )
-                }
-            }
         }
 
         Spacer(Modifier.width(10.dp))
 
         Column(modifier = Modifier.widthIn(max = maxWidth)) {
-            // AI sender name label
+            // Sender name
             Text(
-                text = config?.chatTitle ?: "FarmerChat AI",
+                text = (config?.chatTitle ?: "FarmerChat").uppercase(),
                 style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 11.sp,
-                modifier = Modifier.padding(start = 2.dp, bottom = 4.dp)
+                fontWeight = FontWeight.Bold,
+                color = primaryColor,
+                fontSize = 10.sp,
+                letterSpacing = 0.8.sp,
+                modifier = Modifier.padding(start = 4.dp, bottom = 5.dp)
             )
 
-            // Message bubble with shadow
+            // White card bubble with real shadow
             Surface(
-                modifier = Modifier.shadow(
-                    elevation = elevation + 2.dp,
-                    shape = RoundedCornerShape(
-                        topStart = 4.dp,
-                        topEnd = r,
-                        bottomStart = r,
-                        bottomEnd = r
-                    ),
-                    ambientColor = extColors.aiBubbleBackground.copy(alpha = 0.1f),
-                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-                ),
-                shape = RoundedCornerShape(
-                    topStart = 4.dp,
-                    topEnd = r,
-                    bottomStart = r,
-                    bottomEnd = r
-                ),
+                shape = bubbleShape,
                 color = extColors.aiBubbleBackground,
-                tonalElevation = elevation
+                shadowElevation = 6.dp,
+                tonalElevation = 0.dp,
+                modifier = Modifier
+                    .border(
+                        width = 0.5.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
+                        shape = bubbleShape
+                    )
             ) {
                 MarkdownText(
                     markdown = message.text,
@@ -207,7 +199,7 @@ private fun AiResponseBubble(
                 )
             }
 
-            // Actions row
+            // Actions
             ChatResponseActions(
                 responseText = message.text,
                 messageId = message.messageId,
@@ -216,14 +208,13 @@ private fun AiResponseBubble(
                 onListenClick = onListenClick
             )
 
-            // Follow-up questions — only under the last AI response
+            // Follow-up questions
             if (isLastAiMessage && !message.followUpQuestions.isNullOrEmpty()) {
                 val ids = suggestedQuestionIds ?: message.followUpQuestionIds
                 SuggestedQuestionsSection(
                     questions = message.followUpQuestions,
                     onQuestionSelected = { question, index ->
-                        val questionId = ids?.getOrNull(index)
-                        onFollowUpSelected(question, questionId)
+                        onFollowUpSelected(question, ids?.getOrNull(index))
                     }
                 )
             }

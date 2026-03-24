@@ -8,6 +8,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,12 +30,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.farmerchat.sdk.FarmerChatSdk
 import com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors
 
@@ -43,7 +45,8 @@ internal fun ChatLoadingContent(modifier: Modifier = Modifier) {
     val extColors = LocalSdkExtendedColors.current
     val config = runCatching { FarmerChatSdk.config }.getOrNull()
     val avatarEmoji = config?.aiAvatarEmoji ?: "🌱"
-    val avatarBg = extColors.aiAvatarBackground
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val bubbleShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 5.dp, bottomEnd = 20.dp)
 
     Row(
         modifier = modifier
@@ -51,75 +54,53 @@ internal fun ChatLoadingContent(modifier: Modifier = Modifier) {
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.Bottom
     ) {
-        // Bot avatar
+        // Gradient avatar
         Box(
-            modifier = Modifier.size(38.dp),
+            modifier = Modifier
+                .size(38.dp)
+                .shadow(3.dp, CircleShape, spotColor = primaryColor.copy(alpha = 0.18f))
+                .clip(CircleShape)
+                .background(Brush.linearGradient(colors = listOf(primaryColor.copy(alpha = 0.85f), primaryColor.copy(alpha = 0.55f)))),
             contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(38.dp)
-                    .background(
-                        brush = Brush.radialGradient(
-                            colors = listOf(
-                                avatarBg.copy(alpha = 0.35f),
-                                avatarBg.copy(alpha = 0.08f)
-                            )
-                        ),
-                        shape = CircleShape
-                    )
-            )
-            Surface(
-                modifier = Modifier.size(32.dp),
-                shape = CircleShape,
-                color = avatarBg.copy(alpha = 0.22f)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(text = avatarEmoji, style = MaterialTheme.typography.labelSmall)
-                }
-            }
+            Text(text = avatarEmoji, fontSize = 18.sp)
         }
 
         Spacer(Modifier.width(10.dp))
 
         // Typing bubble
         Surface(
-            shape = RoundedCornerShape(
-                topStart = 4.dp,
-                topEnd = 18.dp,
-                bottomStart = 18.dp,
-                bottomEnd = 18.dp
-            ),
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            shadowElevation = 2.dp,
-            tonalElevation = 1.dp
+            shape = bubbleShape,
+            color = extColors.aiBubbleBackground,
+            shadowElevation = 6.dp,
+            modifier = Modifier.border(
+                0.5.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
+                bubbleShape
+            )
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
-                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val infiniteTransition = rememberInfiniteTransition(label = "typing")
                 repeat(3) { index ->
                     val offsetY by infiniteTransition.animateFloat(
                         initialValue = 0f,
-                        targetValue = -6f,
+                        targetValue = -7f,
                         animationSpec = infiniteRepeatable(
-                            animation = tween(
-                                durationMillis = 420,
-                                delayMillis = index * 130,
-                                easing = FastOutSlowInEasing
-                            ),
+                            animation = tween(380, delayMillis = index * 120, easing = FastOutSlowInEasing),
                             repeatMode = RepeatMode.Reverse
                         ),
-                        label = "dot_y_$index"
+                        label = "dot_$index"
                     )
                     Box(
                         modifier = Modifier
-                            .size(7.dp)
+                            .size(8.dp)
                             .offset(y = offsetY.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
+                            .background(primaryColor.copy(alpha = 0.65f + index * 0.1f))
                     )
                 }
             }
@@ -131,10 +112,10 @@ internal fun ChatLoadingContent(modifier: Modifier = Modifier) {
 internal fun ShimmerBlock(modifier: Modifier = Modifier) {
     val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
     val shimmerX by infiniteTransition.animateFloat(
-        initialValue = -300f,
-        targetValue = 1200f,
+        initialValue = -400f,
+        targetValue = 1400f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1400, easing = LinearEasing),
+            animation = tween(1600, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
         label = "shimmer_x"
@@ -143,87 +124,65 @@ internal fun ShimmerBlock(modifier: Modifier = Modifier) {
 
     val shimmerBrush = Brush.linearGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f),
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.75f),
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
         ),
         start = Offset(shimmerX, 0f),
-        end = Offset(shimmerX + 300f, 200f)
+        end = Offset(shimmerX + 400f, 0f)
     )
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // User bubble shimmer (left-aligned with avatar circle)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(shimmerBrush)
-            )
-            Spacer(Modifier.width(10.dp))
-            Box(
-                modifier = Modifier
-                    .widthIn(min = 80.dp, max = screenWidth * 0.52f)
-                    .height(38.dp)
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = 4.dp, topEnd = 16.dp,
-                            bottomStart = 16.dp, bottomEnd = 16.dp
-                        )
-                    )
-                    .background(shimmerBrush)
-            )
-        }
-
-        // AI bubble shimmer (left-aligned with avatar + multi-line)
+        // AI bubble shimmer — LEFT aligned
         Row(verticalAlignment = Alignment.Top) {
             Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(shimmerBrush)
+                modifier = Modifier.size(38.dp).clip(CircleShape).background(shimmerBrush)
             )
             Spacer(Modifier.width(10.dp))
             Column(
                 modifier = Modifier
-                    .widthIn(max = screenWidth * 0.75f)
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = 4.dp, topEnd = 16.dp,
-                            bottomStart = 16.dp, bottomEnd = 16.dp
-                        )
-                    )
+                    .widthIn(max = screenWidth * 0.72f)
+                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 5.dp, bottomEnd = 20.dp))
                     .background(shimmerBrush)
-                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                    .padding(horizontal = 14.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(13.dp)
+                    modifier = Modifier.fillMaxWidth().height(13.dp)
                         .clip(RoundedCornerShape(6.dp))
-                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
+                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f))
                 )
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(13.dp)
+                    modifier = Modifier.fillMaxWidth().height(13.dp)
                         .clip(RoundedCornerShape(6.dp))
-                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
+                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f))
                 )
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth(0.6f)
-                        .height(13.dp)
+                    modifier = Modifier.fillMaxWidth(0.55f).height(13.dp)
                         .clip(RoundedCornerShape(6.dp))
-                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
+                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f))
                 )
             }
+        }
+
+        // User bubble shimmer — RIGHT aligned
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.Top
+        ) {
+            Box(
+                modifier = Modifier
+                    .widthIn(min = 100.dp, max = screenWidth * 0.55f)
+                    .height(40.dp)
+                    .clip(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 18.dp, bottomEnd = 5.dp))
+                    .background(shimmerBrush)
+            )
         }
     }
 }
