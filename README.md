@@ -69,8 +69,6 @@ dependencies {
 class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        // The SDK automatically calls initialize_user to obtain tokens.
-        // No access token, refresh token, or user ID needed from the host app.
         FarmerChatSdk.initialize(
             context = this,
             config = FarmerChatConfig(
@@ -139,8 +137,6 @@ import FarmerChatSDK
 @main
 struct MyApp: App {
     init() {
-        // The SDK automatically calls initialize_user to obtain tokens.
-        // No access token, refresh token, or user ID needed from the host app.
         try? FarmerChatSDK.shared.configure(FarmerChatConfig(
             sdkApiKey: "fc_live_your_key_here",
             baseUrl: "https://your-api-base-url.com/"
@@ -212,8 +208,6 @@ npx pod-install  # iOS
 ```typescript
 import { FarmerChatSDK } from 'farmer-chat-sdk'
 
-// The SDK automatically calls initialize_user to obtain tokens.
-// No access token, refresh token, or user ID needed from the host app.
 FarmerChatSDK.configure({
   sdkApiKey: 'fc_live_your_key_here',
   baseUrl: 'https://your-api-base-url.com/',
@@ -267,6 +261,147 @@ FarmerChatSDK.updateTokens('new_access_token', 'new_refresh_token')
 
 ---
 
+## UI Customization (Android)
+
+Every visual aspect of the SDK can be customized by passing additional fields to `FarmerChatConfig`. All customization fields are optional — defaults match the FarmerChat green theme.
+
+### Full customization example:
+```kotlin
+FarmerChatSdk.initialize(
+    context = this,
+    config = FarmerChatConfig(
+        sdkApiKey = "fc_live_your_key_here",
+        baseUrl   = "https://your-api-base-url.com/",
+
+        // ── FAB ──────────────────────────────────────────────────────
+        fabLabel           = "Ask AI",                   // label next to icon
+        fabIcon            = Icons.Filled.SmartToy,      // any Material icon
+        fabBackgroundColor = 0xFF1565C0L,                // FAB button color (ARGB)
+        fabContentColor    = 0xFFFFFFFFL,                // FAB icon/text color
+
+        // ── Theme ─────────────────────────────────────────────────────
+        primaryColor       = 0xFF1565C0L,                // toolbar, active elements
+
+        // ── Chat bubbles ──────────────────────────────────────────────
+        userBubbleColor    = 0xFF1565C0L,                // user message background
+        userBubbleTextColor = 0xFFFFFFFFL,               // user message text
+        aiBubbleColor      = 0xFFE3F2FDL,                // AI response background
+        aiBubbleTextColor  = 0xFF0D1117L,                // AI response text
+
+        // ── Chat screen text ──────────────────────────────────────────
+        chatTitle    = "My AI Assistant",
+        chatSubtitle = "Powered by FarmerChat"
+    )
+)
+```
+
+All color values are standard `0xAARRGGBB` Long constants (same format as Android `Color` constants).
+
+### Per-FAB overrides
+
+You can also override FAB appearance individually without changing the global config:
+
+```kotlin
+FarmerChatFab(
+    extended       = true,
+    label          = "Chat",
+    containerColor = Color(0xFF6200EE),    // purple FAB
+    contentColor   = Color.White,
+    icon           = Icons.Filled.Chat
+)
+```
+
+### Customization reference table (Android)
+
+| `FarmerChatConfig` field | Type | Default | What it controls |
+|--------------------------|------|---------|-----------------|
+| `fabLabel` | `String` | `"Chat with FarmerChat"` | FAB button label |
+| `fabIcon` | `ImageVector` | `Icons.Filled.Forum` | FAB button icon |
+| `fabBackgroundColor` | `Long?` | same as `primaryColor` | FAB background |
+| `fabContentColor` | `Long` | `0xFFFFFFFF` | FAB icon + text color |
+| `primaryColor` | `Long` | `0xFF2E7D32` | Toolbar, active tints |
+| `userBubbleColor` | `Long` | `0xFF2E7D32` | User message bubble background |
+| `userBubbleTextColor` | `Long` | `0xFFFFFFFF` | User message text |
+| `aiBubbleColor` | `Long` | `0xFFF1F8E9` | AI response bubble background |
+| `aiBubbleTextColor` | `Long` | `0xFF1C1B1F` | AI response text |
+| `chatTitle` | `String` | `"FarmerChat"` | Top bar title |
+| `chatSubtitle` | `String` | `"AI Farm Assistant"` | Top bar subtitle |
+
+---
+
+## UI Customization (iOS)
+
+Pass color and text overrides to `FarmerChatConfig`:
+
+```swift
+try? FarmerChatSDK.shared.configure(FarmerChatConfig(
+    sdkApiKey: "fc_live_your_key_here",
+    baseUrl:   "https://your-api-base-url.com/",
+
+    // FAB
+    fabLabel:           "Ask AI",
+    fabBackgroundColor: Color(hex: "#1565C0"),
+    fabContentColor:    .white,
+
+    // Theme
+    primaryColor:       Color(hex: "#1565C0"),
+
+    // Chat bubbles
+    userBubbleColor:    Color(hex: "#1565C0"),
+    userBubbleTextColor: .white,
+    aiBubbleColor:      Color(hex: "#E3F2FD"),
+    aiBubbleTextColor:  Color(hex: "#0D1117"),
+
+    // Chat screen
+    chatTitle:    "My AI Assistant",
+    chatSubtitle: "Powered by FarmerChat"
+))
+```
+
+---
+
+## UI Customization (React Native)
+
+Pass color and text overrides inside `configure`:
+
+```typescript
+FarmerChatSDK.configure({
+  sdkApiKey: 'fc_live_your_key_here',
+  baseUrl:   'https://your-api-base-url.com/',
+
+  // FAB
+  fabLabel:           'Ask AI',
+  fabBackgroundColor: '#1565C0',
+  fabContentColor:    '#FFFFFF',
+
+  // Theme
+  primaryColor:       '#1565C0',
+
+  // Chat bubbles
+  userBubbleColor:     '#1565C0',
+  userBubbleTextColor: '#FFFFFF',
+  aiBubbleColor:       '#E3F2FD',
+  aiBubbleTextColor:   '#0D1117',
+
+  // Chat screen
+  chatTitle:    'My AI Assistant',
+  chatSubtitle: 'Powered by FarmerChat',
+})
+```
+
+Or pass props directly to `<ChatFAB>`:
+
+```typescript
+<ChatFAB
+  style={{ position: 'absolute', bottom: 24, right: 24 }}
+  label="Ask AI"
+  backgroundColor="#1565C0"
+  iconColor="#FFFFFF"
+/>
+```
+
+---
+
 ## Chat Entry Points
 
 All 4 entry points work out of the box:
@@ -293,9 +428,9 @@ All 4 entry points work out of the box:
 ```
 Host App
   └── FarmerChatFab (tapped)
-        └── FarmerChatActivity / ChatContainerView / ChatModal
+        └── Full-screen slide-up overlay (Dialog + AnimatedVisibility)
               ├── ChatScreen  ← ChatViewModel
-              │     ├── ChatThreadContent (message list)
+              │     ├── ChatThreadContent (message list — both bubbles left-aligned)
               │     ├── ChatInputOverlays (text / voice / image)
               │     └── ChatResponseActions (TTS / Share / Save)
               └── HistoryScreen  ← HistoryViewModel

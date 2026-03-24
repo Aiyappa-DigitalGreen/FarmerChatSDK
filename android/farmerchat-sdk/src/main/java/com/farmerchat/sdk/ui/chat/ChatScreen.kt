@@ -149,15 +149,16 @@ internal fun ChatScreen(
         topBar = {
             TopAppBar(
                 title = {
+                    val config = runCatching { com.farmerchat.sdk.FarmerChatSdk.config }.getOrNull()
                     Column {
                         Text(
-                            text = "FarmerChat",
+                            text = config?.chatTitle ?: "FarmerChat",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "AI Farm Assistant",
+                            text = config?.chatSubtitle ?: "AI Farm Assistant",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary
                         )

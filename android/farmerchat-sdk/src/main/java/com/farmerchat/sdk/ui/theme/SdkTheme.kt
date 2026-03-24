@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import com.farmerchat.sdk.FarmerChatSdk
 
 private val LightColorScheme = lightColorScheme(
     primary = SdkGreen800,
@@ -65,20 +66,29 @@ internal fun SdkTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val config = runCatching { FarmerChatSdk.config }.getOrNull()
+    val primaryColor = config?.primaryColor?.let { Color(it) } ?: SdkGreen800
+
+    val baseScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colorScheme = baseScheme.copy(
+        primary = if (darkTheme) baseScheme.primary else primaryColor,
+        secondary = if (darkTheme) baseScheme.secondary else primaryColor,
+        tertiary = if (darkTheme) baseScheme.tertiary else primaryColor
+    )
+
     val extendedColors = if (darkTheme) {
         SdkExtendedColors(
-            userBubbleBackground = SdkGreen700,
-            userBubbleText = Color.White,
-            aiBubbleBackground = SdkAiBubbleDark,
-            aiBubbleText = SdkAiBubbleTextDark
+            userBubbleBackground = config?.userBubbleColor?.let { Color(it) } ?: SdkGreen700,
+            userBubbleText = config?.userBubbleTextColor?.let { Color(it) } ?: Color.White,
+            aiBubbleBackground = config?.aiBubbleColor?.let { Color(it) } ?: SdkAiBubbleDark,
+            aiBubbleText = config?.aiBubbleTextColor?.let { Color(it) } ?: SdkAiBubbleTextDark
         )
     } else {
         SdkExtendedColors(
-            userBubbleBackground = SdkUserBubble,
-            userBubbleText = SdkUserBubbleText,
-            aiBubbleBackground = SdkAiBubble,
-            aiBubbleText = SdkAiBubbleText
+            userBubbleBackground = config?.userBubbleColor?.let { Color(it) } ?: SdkUserBubble,
+            userBubbleText = config?.userBubbleTextColor?.let { Color(it) } ?: SdkUserBubbleText,
+            aiBubbleBackground = config?.aiBubbleColor?.let { Color(it) } ?: SdkAiBubble,
+            aiBubbleText = config?.aiBubbleTextColor?.let { Color(it) } ?: SdkAiBubbleText
         )
     }
 
