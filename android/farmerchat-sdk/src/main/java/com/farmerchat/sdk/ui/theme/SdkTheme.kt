@@ -45,11 +45,32 @@ private val DarkColorScheme = darkColorScheme(
     error = Color(0xFFCF6679)
 )
 
+/**
+ * Extended color + style tokens provided via CompositionLocal.
+ * Access via [LocalSdkExtendedColors].current inside any SDK composable.
+ */
 data class SdkExtendedColors(
+    // Bubbles
     val userBubbleBackground: Color,
     val userBubbleText: Color,
     val aiBubbleBackground: Color,
-    val aiBubbleText: Color
+    val aiBubbleText: Color,
+    // Top bar
+    val topBarBackground: Color,
+    val topBarTitle: Color,
+    val topBarSubtitle: Color,
+    // Chat background
+    val chatBackground: Color,
+    // AI avatar
+    val aiAvatarBackground: Color,
+    // Input bar
+    val inputBarBackground: Color,
+    val sendButtonBackground: Color,
+    // Follow-up questions
+    val followUpCardBackground: Color,
+    val followUpText: Color,
+    val followUpButtonBackground: Color,
+    val followUpButtonText: Color
 )
 
 val LocalSdkExtendedColors = staticCompositionLocalOf {
@@ -57,7 +78,18 @@ val LocalSdkExtendedColors = staticCompositionLocalOf {
         userBubbleBackground = SdkUserBubble,
         userBubbleText = SdkUserBubbleText,
         aiBubbleBackground = SdkAiBubble,
-        aiBubbleText = SdkAiBubbleText
+        aiBubbleText = SdkAiBubbleText,
+        topBarBackground = SdkSurface,
+        topBarTitle = SdkOnSurface,
+        topBarSubtitle = SdkGreen800,
+        chatBackground = SdkBackground,
+        aiAvatarBackground = SdkGreen100,
+        inputBarBackground = SdkSurface,
+        sendButtonBackground = SdkGreen800,
+        followUpCardBackground = Color(0xFFF5F5F5),
+        followUpText = SdkOnSurface,
+        followUpButtonBackground = SdkGreen800,
+        followUpButtonText = Color.White
     )
 }
 
@@ -79,16 +111,38 @@ internal fun SdkTheme(
     val extendedColors = if (darkTheme) {
         SdkExtendedColors(
             userBubbleBackground = config?.userBubbleColor?.let { Color(it) } ?: SdkGreen700,
-            userBubbleText = config?.userBubbleTextColor?.let { Color(it) } ?: Color.White,
-            aiBubbleBackground = config?.aiBubbleColor?.let { Color(it) } ?: SdkAiBubbleDark,
-            aiBubbleText = config?.aiBubbleTextColor?.let { Color(it) } ?: SdkAiBubbleTextDark
+            userBubbleText       = config?.userBubbleTextColor?.let { Color(it) } ?: Color.White,
+            aiBubbleBackground   = config?.aiBubbleColor?.let { Color(it) } ?: SdkAiBubbleDark,
+            aiBubbleText         = config?.aiBubbleTextColor?.let { Color(it) } ?: SdkAiBubbleTextDark,
+            topBarBackground     = config?.topBarBackgroundColor?.let { Color(it) } ?: SdkSurfaceDark,
+            topBarTitle          = config?.topBarTitleColor?.let { Color(it) } ?: Color(0xFFE6E1E5),
+            topBarSubtitle       = config?.topBarSubtitleColor?.let { Color(it) } ?: SdkGreenDark,
+            chatBackground       = config?.chatBackgroundColor?.let { Color(it) } ?: SdkBackgroundDark,
+            aiAvatarBackground   = config?.aiAvatarBackgroundColor?.let { Color(it) } ?: SdkGreen800,
+            inputBarBackground   = config?.inputBarBackgroundColor?.let { Color(it) } ?: SdkSurfaceDark,
+            sendButtonBackground = config?.sendButtonColor?.let { Color(it) } ?: SdkGreenDark,
+            followUpCardBackground = config?.followUpCardBackgroundColor?.let { Color(it) } ?: Color(0xFF2C3E2D),
+            followUpText         = config?.followUpTextColor?.let { Color(it) } ?: Color(0xFFE8F5E9),
+            followUpButtonBackground = config?.followUpButtonColor?.let { Color(it) } ?: SdkGreenDark,
+            followUpButtonText   = config?.followUpButtonTextColor?.let { Color(it) } ?: Color.White
         )
     } else {
         SdkExtendedColors(
             userBubbleBackground = config?.userBubbleColor?.let { Color(it) } ?: SdkUserBubble,
-            userBubbleText = config?.userBubbleTextColor?.let { Color(it) } ?: SdkUserBubbleText,
-            aiBubbleBackground = config?.aiBubbleColor?.let { Color(it) } ?: SdkAiBubble,
-            aiBubbleText = config?.aiBubbleTextColor?.let { Color(it) } ?: SdkAiBubbleText
+            userBubbleText       = config?.userBubbleTextColor?.let { Color(it) } ?: SdkUserBubbleText,
+            aiBubbleBackground   = config?.aiBubbleColor?.let { Color(it) } ?: SdkAiBubble,
+            aiBubbleText         = config?.aiBubbleTextColor?.let { Color(it) } ?: SdkAiBubbleText,
+            topBarBackground     = config?.topBarBackgroundColor?.let { Color(it) } ?: SdkSurface,
+            topBarTitle          = config?.topBarTitleColor?.let { Color(it) } ?: SdkOnSurface,
+            topBarSubtitle       = config?.topBarSubtitleColor?.let { Color(it) } ?: primaryColor,
+            chatBackground       = config?.chatBackgroundColor?.let { Color(it) } ?: SdkBackground,
+            aiAvatarBackground   = config?.aiAvatarBackgroundColor?.let { Color(it) } ?: SdkGreen100,
+            inputBarBackground   = config?.inputBarBackgroundColor?.let { Color(it) } ?: SdkSurface,
+            sendButtonBackground = config?.sendButtonColor?.let { Color(it) } ?: primaryColor,
+            followUpCardBackground = config?.followUpCardBackgroundColor?.let { Color(it) } ?: Color(0xFFF5F5F5),
+            followUpText         = config?.followUpTextColor?.let { Color(it) } ?: SdkOnSurface,
+            followUpButtonBackground = config?.followUpButtonColor?.let { Color(it) } ?: primaryColor,
+            followUpButtonText   = config?.followUpButtonTextColor?.let { Color(it) } ?: Color.White
         )
     }
 

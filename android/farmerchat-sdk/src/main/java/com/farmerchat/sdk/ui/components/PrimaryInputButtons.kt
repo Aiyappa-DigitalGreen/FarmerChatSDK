@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors
 
 @Composable
 internal fun PrimaryInputButtons(
@@ -28,6 +29,8 @@ internal fun PrimaryInputButtons(
     onMicClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val extColors = LocalSdkExtendedColors.current
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -63,7 +66,7 @@ internal fun PrimaryInputButtons(
                 FilledIconButton(
                     onClick = onSendClick,
                     colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                        containerColor = extColors.sendButtonBackground
                     )
                 ) {
                     Icon(

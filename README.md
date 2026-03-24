@@ -286,7 +286,7 @@ FarmerChatSDK.updateTokens('new_access_token', 'new_refresh_token')
 
 ## UI Customization (Android)
 
-Every visual aspect of the SDK can be customized by passing additional fields to `FarmerChatConfig`. All customization fields are optional — defaults match the FarmerChat green theme.
+Every visual aspect of the SDK can be customized by passing fields to `FarmerChatConfig`. All fields are optional — defaults match the FarmerChat green theme.
 
 ### Full customization example:
 ```kotlin
@@ -297,58 +297,137 @@ FarmerChatSdk.initialize(
         baseUrl   = "https://your-api-base-url.com/",
 
         // ── FAB ──────────────────────────────────────────────────────
-        fabLabel           = "Ask AI",                   // label next to icon
-        fabIcon            = Icons.Filled.SmartToy,      // any Material icon
-        fabBackgroundColor = 0xFF1565C0L,                // FAB button color (ARGB)
-        fabContentColor    = 0xFFFFFFFFL,                // FAB icon/text color
+        fabLabel           = "Ask AI",
+        fabIcon            = Icons.Filled.SmartToy,   // any Material ImageVector
+        fabBackgroundColor = 0xFF1565C0L,              // ARGB Long
+        fabContentColor    = 0xFFFFFFFFL,
 
-        // ── Theme ─────────────────────────────────────────────────────
-        primaryColor       = 0xFF1565C0L,                // toolbar, active elements
+        // ── Top bar ───────────────────────────────────────────────────
+        chatTitle              = "My AI Assistant",
+        chatSubtitle           = "Powered by FarmerChat",
+        showHistoryButton      = true,
+        topBarBackgroundColor  = 0xFF1565C0L,
+        topBarTitleColor       = 0xFFFFFFFFL,
+        topBarSubtitleColor    = 0xFFCCE5FFL,
 
-        // ── Chat bubbles ──────────────────────────────────────────────
-        userBubbleColor    = 0xFF1565C0L,                // user message background
-        userBubbleTextColor = 0xFFFFFFFFL,               // user message text
-        aiBubbleColor      = 0xFFE3F2FDL,                // AI response background
-        aiBubbleTextColor  = 0xFF0D1117L,                // AI response text
+        // ── Chat background ───────────────────────────────────────────
+        chatBackgroundColor    = 0xFFF5F5F5L,
 
-        // ── Chat screen text ──────────────────────────────────────────
-        chatTitle    = "My AI Assistant",
-        chatSubtitle = "Powered by FarmerChat"
+        // ── User bubble ───────────────────────────────────────────────
+        userBubbleColor        = 0xFF1565C0L,
+        userBubbleTextColor    = 0xFFFFFFFFL,
+        showUserAvatar         = true,                // show person icon next to user msg
+
+        // ── AI bubble ─────────────────────────────────────────────────
+        aiBubbleColor          = 0xFFE3F2FDL,
+        aiBubbleTextColor      = 0xFF0D1117L,
+        aiBubbleElevation      = 2f,                  // card shadow dp
+        aiAvatarEmoji          = "🤖",
+        aiAvatarBackgroundColor = 0xFF1565C0L,
+
+        // ── Bubble shape & font ───────────────────────────────────────
+        bubbleCornerRadius     = 20f,                 // dp, all non-pointer corners
+        messageFontSizeSp      = 15f,                 // sp
+
+        // ── Input bar ─────────────────────────────────────────────────
+        inputHintText          = "Type your question...",
+        inputBarBackgroundColor = 0xFFFFFFFFL,
+        sendButtonColor        = 0xFF1565C0L,
+
+        // ── Follow-up questions ───────────────────────────────────────
+        followUpHeaderText           = "You might also ask",
+        showFollowUpHeaderIcon       = true,
+        followUpCardBackgroundColor  = 0xFFE3F2FDL,
+        followUpTextColor            = 0xFF0D1117L,
+        followUpButtonColor          = 0xFF1565C0L,
+        followUpButtonTextColor      = 0xFFFFFFFFL,
+
+        // ── Theme (affects Material3 primary color) ────────────────────
+        primaryColor           = 0xFF1565C0L,
     )
 )
 ```
 
-All color values are standard `0xAARRGGBB` Long constants (same format as Android `Color` constants).
+All color values are `0xAARRGGBB` Long constants (same format as Android `Color` constants).
 
 ### Per-FAB overrides
 
-You can also override FAB appearance individually without changing the global config:
+Override FAB appearance per-instance without changing the global config:
 
 ```kotlin
 FarmerChatFab(
-    extended       = true,
-    label          = "Chat",
-    containerColor = Color(0xFF6200EE),    // purple FAB
-    contentColor   = Color.White,
-    icon           = Icons.Filled.Chat
+    extended          = true,
+    label             = "Chat",
+    fabBackgroundColor = Color(0xFF6200EE),
+    fabContentColor   = Color.White,
+    icon              = Icons.Filled.Chat
 )
 ```
 
 ### Customization reference table (Android)
 
-| `FarmerChatConfig` field | Type | Default | What it controls |
-|--------------------------|------|---------|-----------------|
+#### FAB
+| Field | Type | Default | What it controls |
+|-------|------|---------|-----------------|
 | `fabLabel` | `String` | `"Chat with FarmerChat"` | FAB button label |
 | `fabIcon` | `ImageVector` | `Icons.Filled.Forum` | FAB button icon |
-| `fabBackgroundColor` | `Long?` | same as `primaryColor` | FAB background |
+| `fabBackgroundColor` | `Long?` | same as `primaryColor` | FAB background color |
 | `fabContentColor` | `Long` | `0xFFFFFFFF` | FAB icon + text color |
-| `primaryColor` | `Long` | `0xFF2E7D32` | Toolbar, active tints |
-| `userBubbleColor` | `Long` | `0xFF2E7D32` | User message bubble background |
-| `userBubbleTextColor` | `Long` | `0xFFFFFFFF` | User message text |
-| `aiBubbleColor` | `Long` | `0xFFF1F8E9` | AI response bubble background |
-| `aiBubbleTextColor` | `Long` | `0xFF1C1B1F` | AI response text |
+
+#### Top bar
+| Field | Type | Default | What it controls |
+|-------|------|---------|-----------------|
 | `chatTitle` | `String` | `"FarmerChat"` | Top bar title |
 | `chatSubtitle` | `String` | `"AI Farm Assistant"` | Top bar subtitle |
+| `showHistoryButton` | `Boolean` | `true` | Show/hide history icon |
+| `topBarBackgroundColor` | `Long?` | `primaryColor` | Top bar background |
+| `topBarTitleColor` | `Long?` | white | Top bar title text color |
+| `topBarSubtitleColor` | `Long?` | white 70% | Top bar subtitle text color |
+
+#### Chat screen
+| Field | Type | Default | What it controls |
+|-------|------|---------|-----------------|
+| `chatBackgroundColor` | `Long` | `0xFFFFFFFF` | Screen background color |
+| `primaryColor` | `Long` | `0xFF2E7D32` | Material3 primary (active tints) |
+
+#### User message bubble
+| Field | Type | Default | What it controls |
+|-------|------|---------|-----------------|
+| `userBubbleColor` | `Long` | `0xFF2E7D32` | User bubble background |
+| `userBubbleTextColor` | `Long` | `0xFFFFFFFF` | User bubble text color |
+| `showUserAvatar` | `Boolean` | `true` | Show person avatar icon |
+
+#### AI response bubble
+| Field | Type | Default | What it controls |
+|-------|------|---------|-----------------|
+| `aiBubbleColor` | `Long` | `0xFFF1F8E9` | AI bubble background |
+| `aiBubbleTextColor` | `Long` | `0xFF1C1B1F` | AI bubble text color |
+| `aiBubbleElevation` | `Float` | `1f` | AI bubble card shadow (dp) |
+| `aiAvatarEmoji` | `String` | `"🌱"` | AI avatar emoji character |
+| `aiAvatarBackgroundColor` | `Long?` | light green | AI avatar circle background |
+
+#### Bubble shape & typography
+| Field | Type | Default | What it controls |
+|-------|------|---------|-----------------|
+| `bubbleCornerRadius` | `Float` | `16f` | Corner radius dp (all bubbles) |
+| `messageFontSizeSp` | `Float` | `14f` | Message body font size (sp) |
+
+#### Input bar
+| Field | Type | Default | What it controls |
+|-------|------|---------|-----------------|
+| `inputHintText` | `String` | `"Ask about your crops..."` | Text field placeholder |
+| `inputBarBackgroundColor` | `Long?` | surface color | Input bar background |
+| `sendButtonColor` | `Long?` | `primaryColor` | Send button background |
+
+#### Follow-up questions
+| Field | Type | Default | What it controls |
+|-------|------|---------|-----------------|
+| `followUpHeaderText` | `String` | `"Related questions"` | Section header label |
+| `showFollowUpHeaderIcon` | `Boolean` | `true` | Show lightbulb icon in header |
+| `followUpCardBackgroundColor` | `Long?` | light green | Question card background |
+| `followUpTextColor` | `Long?` | on-surface color | Question text color |
+| `followUpButtonColor` | `Long?` | `primaryColor` | "Ask" button background |
+| `followUpButtonTextColor` | `Long` | `0xFFFFFFFF` | "Ask" button text color |
 
 ---
 

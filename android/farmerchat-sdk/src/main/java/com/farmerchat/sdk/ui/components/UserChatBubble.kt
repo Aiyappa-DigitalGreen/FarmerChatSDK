@@ -29,7 +29,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.farmerchat.sdk.FarmerChatSdk
 import com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors
 
 @Composable
@@ -40,30 +42,36 @@ internal fun UserChatBubble(
     modifier: Modifier = Modifier
 ) {
     val extColors = LocalSdkExtendedColors.current
+    val config = runCatching { FarmerChatSdk.config }.getOrNull()
     val maxWidth = (LocalConfiguration.current.screenWidthDp * 0.78).dp
+
+    val r = (config?.bubbleCornerRadius ?: 16f).dp
+    val fontSize = (config?.messageFontSizeSp ?: 14f).sp
+    val showAvatar = config?.showUserAvatar != false
 
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Top
     ) {
-        // User avatar — person icon in a circle
-        Surface(
-            modifier = Modifier.size(32.dp),
-            shape = CircleShape,
-            color = extColors.userBubbleBackground.copy(alpha = 0.15f)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = Icons.Filled.Person,
-                    contentDescription = "User",
-                    tint = extColors.userBubbleBackground,
-                    modifier = Modifier.size(18.dp)
-                )
+        // User avatar
+        if (showAvatar) {
+            Surface(
+                modifier = Modifier.size(32.dp),
+                shape = CircleShape,
+                color = extColors.userBubbleBackground.copy(alpha = 0.15f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Filled.Person,
+                        contentDescription = "User",
+                        tint = extColors.userBubbleBackground,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
+            Spacer(Modifier.width(8.dp))
         }
-
-        Spacer(Modifier.width(8.dp))
 
         Column(
             modifier = Modifier
@@ -71,9 +79,9 @@ internal fun UserChatBubble(
                 .clip(
                     RoundedCornerShape(
                         topStart = 4.dp,
-                        topEnd = 16.dp,
-                        bottomStart = 16.dp,
-                        bottomEnd = 16.dp
+                        topEnd = r,
+                        bottomStart = r,
+                        bottomEnd = r
                     )
                 )
                 .background(extColors.userBubbleBackground)
@@ -108,6 +116,7 @@ internal fun UserChatBubble(
                     Text(
                         text = "Voice message",
                         color = extColors.userBubbleText,
+                        fontSize = fontSize,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -118,6 +127,7 @@ internal fun UserChatBubble(
                 Text(
                     text = text,
                     color = extColors.userBubbleText,
+                    fontSize = fontSize,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }

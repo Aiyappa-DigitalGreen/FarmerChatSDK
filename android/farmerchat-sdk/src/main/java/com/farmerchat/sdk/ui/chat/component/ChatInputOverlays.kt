@@ -45,7 +45,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.farmerchat.sdk.FarmerChatSdk
 import com.farmerchat.sdk.ui.components.PrimaryInputButtons
+import com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors
 
 @Composable
 internal fun ChatInputBar(
@@ -59,10 +61,14 @@ internal fun ChatInputBar(
     isLoading: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val extColors = LocalSdkExtendedColors.current
+    val config = runCatching { FarmerChatSdk.config }.getOrNull()
+    val hintText = config?.inputHintText ?: "Ask about your crops..."
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         shadowElevation = 8.dp,
-        color = MaterialTheme.colorScheme.surface
+        color = extColors.inputBarBackground
     ) {
         Column {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
@@ -120,7 +126,7 @@ internal fun ChatInputBar(
                     enabled = !isLoading,
                     placeholder = {
                         Text(
-                            text = "Ask about your crops...",
+                            text = hintText,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

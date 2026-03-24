@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import com.farmerchat.sdk.FarmerChatSdk
 import com.farmerchat.sdk.ui.chat.model.ChatMessage
 import com.farmerchat.sdk.ui.chat.udf.ChatState
 import com.farmerchat.sdk.ui.components.MarkdownText
@@ -115,33 +116,28 @@ private fun AiResponseBubble(
     modifier: Modifier = Modifier
 ) {
     val extColors = LocalSdkExtendedColors.current
+    val config = runCatching { FarmerChatSdk.config }.getOrNull()
     val maxWidth = (LocalConfiguration.current.screenWidthDp * 0.88).dp
+    val r = (config?.bubbleCornerRadius ?: 16f).dp
+    val elevation = (config?.aiBubbleElevation ?: 1f).dp
+    val fontSize = (config?.messageFontSizeSp ?: 14f)
+    val avatarEmoji = config?.aiAvatarEmoji ?: "🌱"
 
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top
     ) {
         // Bot avatar
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .clip(CircleShape)
-                .then(
-                    Modifier.padding(0.dp)
-                ),
-            contentAlignment = Alignment.Center
+        Surface(
+            modifier = Modifier.size(32.dp),
+            shape = CircleShape,
+            color = extColors.aiAvatarBackground
         ) {
-            Surface(
-                modifier = Modifier.size(32.dp),
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    androidx.compose.material3.Text(
-                        text = "🌱",
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
+            Box(contentAlignment = Alignment.Center) {
+                androidx.compose.material3.Text(
+                    text = avatarEmoji,
+                    style = MaterialTheme.typography.labelSmall
+                )
             }
         }
 
@@ -153,16 +149,17 @@ private fun AiResponseBubble(
             Surface(
                 shape = RoundedCornerShape(
                     topStart = 4.dp,
-                    topEnd = 16.dp,
-                    bottomStart = 16.dp,
-                    bottomEnd = 16.dp
+                    topEnd = r,
+                    bottomStart = r,
+                    bottomEnd = r
                 ),
                 color = extColors.aiBubbleBackground,
-                tonalElevation = 1.dp
+                tonalElevation = elevation
             ) {
                 MarkdownText(
                     markdown = message.text,
                     color = extColors.aiBubbleText,
+                    fontSize = fontSize,
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
                 )
             }

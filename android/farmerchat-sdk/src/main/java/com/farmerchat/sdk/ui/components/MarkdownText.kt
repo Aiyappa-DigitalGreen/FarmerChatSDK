@@ -195,9 +195,11 @@ private fun parseBoldAndItalic(text: String): AnnotatedString = buildAnnotatedSt
 internal fun MarkdownText(
     markdown: String,
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.onSurface
+    color: Color = MaterialTheme.colorScheme.onSurface,
+    fontSize: Float = 14f
 ) {
     val blocks = remember(markdown) { parseMarkdownBlocks(markdown) }
+    val bodyFontSize = fontSize.sp
 
     Column(modifier = modifier.fillMaxWidth()) {
         for (block in blocks) {
@@ -220,6 +222,7 @@ internal fun MarkdownText(
                     Text(
                         text = parseBoldAndItalic(block.text),
                         style = MaterialTheme.typography.bodyMedium,
+                        fontSize = bodyFontSize,
                         color = color
                     )
                 }
@@ -232,6 +235,7 @@ internal fun MarkdownText(
                             append(parseBoldAndItalic(block.text))
                         },
                         style = MaterialTheme.typography.bodyMedium,
+                        fontSize = bodyFontSize,
                         color = color,
                         modifier = Modifier.padding(start = indent)
                     )
@@ -246,6 +250,7 @@ internal fun MarkdownText(
                             append(parseBoldAndItalic(block.text))
                         },
                         style = MaterialTheme.typography.bodyMedium,
+                        fontSize = bodyFontSize,
                         color = color,
                         modifier = Modifier.padding(start = 8.dp)
                     )

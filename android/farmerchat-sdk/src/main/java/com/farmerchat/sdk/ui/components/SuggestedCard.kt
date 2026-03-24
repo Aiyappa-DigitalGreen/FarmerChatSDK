@@ -3,13 +3,11 @@ package com.farmerchat.sdk.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Lightbulb
@@ -26,6 +24,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.farmerchat.sdk.FarmerChatSdk
+import com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors
 
 @Composable
 internal fun SuggestedQuestionsSection(
@@ -33,9 +33,12 @@ internal fun SuggestedQuestionsSection(
     onQuestionSelected: (String, Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier.fillMaxWidth()
-    ) {
+    val extColors = LocalSdkExtendedColors.current
+    val config = runCatching { FarmerChatSdk.config }.getOrNull()
+    val headerText = config?.followUpHeaderText ?: "Related questions"
+    val showIcon = config?.showFollowUpHeaderIcon != false
+
+    Column(modifier = modifier.fillMaxWidth()) {
         HorizontalDivider(
             modifier = Modifier.padding(horizontal = 4.dp),
             color = MaterialTheme.colorScheme.outlineVariant,
@@ -53,14 +56,16 @@ internal fun SuggestedQuestionsSection(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.padding(bottom = 2.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.Lightbulb,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(16.dp)
-                )
+                if (showIcon) {
+                    Icon(
+                        imageVector = Icons.Outlined.Lightbulb,
+                        contentDescription = null,
+                        tint = extColors.followUpButtonBackground,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
                 Text(
-                    text = "Related questions",
+                    text = headerText,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -71,6 +76,10 @@ internal fun SuggestedQuestionsSection(
             questions.take(5).forEachIndexed { index, question ->
                 RelatedQuestionRow(
                     question = question,
+                    cardBackground = extColors.followUpCardBackground,
+                    questionTextColor = extColors.followUpText,
+                    buttonColor = extColors.followUpButtonBackground,
+                    buttonTextColor = extColors.followUpButtonText,
                     onClick = { onQuestionSelected(question, index) }
                 )
             }
@@ -81,16 +90,17 @@ internal fun SuggestedQuestionsSection(
 @Composable
 private fun RelatedQuestionRow(
     question: String,
+    cardBackground: Color,
+    questionTextColor: Color,
+    buttonColor: Color,
+    buttonTextColor: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(12.dp)
-            )
+            .background(color = cardBackground, shape = RoundedCornerShape(12.dp))
             .padding(start = 14.dp, end = 10.dp, top = 10.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -98,29 +108,26 @@ private fun RelatedQuestionRow(
         Text(
             text = question,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = questionTextColor,
             maxLines = 4,
             modifier = Modifier.weight(1f),
             lineHeight = 20.sp
         )
 
-        Spacer(Modifier.width(4.dp))
-
         Button(
             onClick = onClick,
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = Color.White
+                containerColor = buttonColor,
+                contentColor = buttonTextColor
             ),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                horizontal = 14.dp, vertical = 8.dp
-            )
+            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
         ) {
             Text(
                 text = "Ask",
                 style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.SemiBold,
+                color = buttonTextColor
             )
         }
     }

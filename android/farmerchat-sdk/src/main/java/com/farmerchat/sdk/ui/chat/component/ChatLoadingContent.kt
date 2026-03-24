@@ -30,10 +30,15 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import com.farmerchat.sdk.FarmerChatSdk
+import com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors
 
 @Composable
 internal fun ChatLoadingContent(modifier: Modifier = Modifier) {
     val infiniteTransition = rememberInfiniteTransition(label = "typing_dots")
+    val extColors = LocalSdkExtendedColors.current
+    val config = runCatching { FarmerChatSdk.config }.getOrNull()
+    val avatarEmoji = config?.aiAvatarEmoji ?: "🌱"
 
     Row(
         modifier = modifier
@@ -45,10 +50,10 @@ internal fun ChatLoadingContent(modifier: Modifier = Modifier) {
         Surface(
             modifier = Modifier.size(32.dp),
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.primaryContainer
+            color = extColors.aiAvatarBackground
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Text(text = "🌱", style = MaterialTheme.typography.labelSmall)
+                Text(text = avatarEmoji, style = MaterialTheme.typography.labelSmall)
             }
         }
 

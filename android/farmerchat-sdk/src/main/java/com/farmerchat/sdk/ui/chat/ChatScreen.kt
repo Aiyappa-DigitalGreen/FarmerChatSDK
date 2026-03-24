@@ -144,22 +144,25 @@ internal fun ChatScreen(
 
     // ── UI ────────────────────────────────────────────────────────────────────
 
+    val config = runCatching { com.farmerchat.sdk.FarmerChatSdk.config }.getOrNull()
+    val extColors = com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors.current
+
     Scaffold(
+        containerColor = extColors.chatBackground,
         topBar = {
             TopAppBar(
                 title = {
-                    val config = runCatching { com.farmerchat.sdk.FarmerChatSdk.config }.getOrNull()
                     Column {
                         Text(
                             text = config?.chatTitle ?: "FarmerChat",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = extColors.topBarTitle
                         )
                         Text(
                             text = config?.chatSubtitle ?: "AI Farm Assistant",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
+                            color = extColors.topBarSubtitle
                         )
                     }
                 },
@@ -167,21 +170,25 @@ internal fun ChatScreen(
                     IconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
+                            tint = extColors.topBarTitle
                         )
                     }
                 },
                 actions = {
-                    IconButton(onClick = onNavigateToHistory) {
-                        Icon(
-                            imageVector = Icons.Filled.History,
-                            contentDescription = "Chat history"
-                        )
+                    if (config?.showHistoryButton != false) {
+                        IconButton(onClick = onNavigateToHistory) {
+                            Icon(
+                                imageVector = Icons.Filled.History,
+                                contentDescription = "Chat history",
+                                tint = extColors.topBarTitle
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                    containerColor = extColors.topBarBackground,
+                    titleContentColor = extColors.topBarTitle
                 )
             )
         },
