@@ -13,6 +13,7 @@ internal object SdkKoinHolder {
     val koin: Koin
         get() = koinApp?.koin ?: error("FarmerChat SDK Koin not started. Call FarmerChatSdk.initialize() first.")
 
+    @Synchronized
     fun start(context: Context) {
         if (koinApp != null) return
         koinApp = koinApplication {
@@ -27,6 +28,7 @@ internal object SdkKoinHolder {
         }
     }
 
+    @Synchronized
     fun stop() {
         koinApp?.close()
         koinApp = null

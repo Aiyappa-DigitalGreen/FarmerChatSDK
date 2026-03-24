@@ -121,8 +121,8 @@ class FarmerChatFabView @JvmOverloads constructor(
                         extended = capturedExtended,
                         label = capturedLabel,
                         conversationId = capturedConversationId,
-                        containerColor = capturedColor,
-                        contentColor = Color.White
+                        fabBackgroundColor = capturedColor,
+                        fabContentColor = Color.White
                     )
                 }
             }

@@ -2,12 +2,15 @@ package com.farmerchat.sdk.preference
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
+
+private const val TAG = "SdkPreferenceManager"
 
 internal class SdkPreferenceManager(context: Context) {
 
-    private val prefs: SharedPreferences = context.getSharedPreferences(
-        PREF_NAME, Context.MODE_PRIVATE
-    )
+    private val prefs: SharedPreferences = createPrefs(context)
 
     fun saveTokens(
         accessToken: String? = null,
@@ -47,5 +50,24 @@ internal class SdkPreferenceManager(context: Context) {
         private const val KEY_REFRESH_TOKEN = "refresh_token"
         private const val KEY_USER_ID = "user_id"
         private const val KEY_DEVICE_ID = "device_id"
+
+        private fun createPrefs(context: Context): SharedPreferences {
+            return try {
+                val masterKey = MasterKey.Builder(context)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build()
+                EncryptedSharedPreferences.create(
+                    context,
+                    PREF_NAME,
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                )
+            } catch (e: Exception) {
+                // Fallback to plain prefs if encryption setup fails (e.g. device without secure hardware)
+                Log.w(TAG, "EncryptedSharedPreferences unavailable, falling back to plain prefs: ${e.message}")
+                context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            }
+        }
     }
 }

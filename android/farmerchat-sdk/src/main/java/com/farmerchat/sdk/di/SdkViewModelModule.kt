@@ -3,7 +3,7 @@ package com.farmerchat.sdk.di
 import com.farmerchat.sdk.ui.chat.ChatViewModel
 import com.farmerchat.sdk.ui.history.HistoryViewModel
 import org.koin.android.ext.koin.androidContext
-import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 internal val sdkViewModelModule = module {

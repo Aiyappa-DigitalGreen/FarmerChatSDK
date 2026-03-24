@@ -115,8 +115,16 @@ internal fun ShimmerBlock(modifier: Modifier = Modifier) {
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // User bubble (right-aligned, short)
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+        // User bubble (left-aligned with avatar — matches UserChatBubble layout)
+        Row(verticalAlignment = Alignment.Top) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .alpha(alpha)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f))
+            )
+            Spacer(Modifier.width(8.dp))
             Box(
                 modifier = Modifier
                     .widthIn(min = 80.dp, max = screenWidth * 0.55f)
@@ -124,7 +132,7 @@ internal fun ShimmerBlock(modifier: Modifier = Modifier) {
                     .alpha(alpha)
                     .clip(
                         RoundedCornerShape(
-                            topStart = 16.dp, topEnd = 4.dp,
+                            topStart = 4.dp, topEnd = 16.dp,
                             bottomStart = 16.dp, bottomEnd = 16.dp
                         )
                     )
