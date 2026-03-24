@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -25,11 +26,11 @@ import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material.icons.filled.MicNone
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -42,12 +43,17 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.farmerchat.sdk.FarmerChatSdk
 import com.farmerchat.sdk.domain.model.history.ConversationListItem
 import com.farmerchat.sdk.ui.chat.component.ShimmerBlock
+import com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors
 import org.koin.androidx.compose.koinViewModel
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -63,8 +69,8 @@ internal fun HistoryScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val listState = rememberLazyListState()
+    val extColors = LocalSdkExtendedColors.current
 
-    // Pagination: load more when near bottom
     LaunchedEffect(listState) {
         snapshotFlow { listState.layoutInfo }
             .collect { layoutInfo ->
@@ -77,24 +83,32 @@ internal fun HistoryScreen(
     }
 
     Scaffold(
+        containerColor = extColors.chatBackground,
         topBar = {
             TopAppBar(
-                title = { Text("Chat History") },
+                title = {
+                    Text(
+                        text = "Chat History",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = extColors.topBarTitle
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = "Back",
+                            tint = extColors.topBarTitle
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = extColors.topBarBackground
                 )
             )
         }
     ) { paddingValues ->
-
         PullToRefreshBox(
             isRefreshing = state.isRefreshing,
             onRefresh = { viewModel.refresh() },
@@ -103,14 +117,12 @@ internal fun HistoryScreen(
                 .padding(paddingValues)
         ) {
             when {
-                // Shimmer on initial load — never show empty/error while loading
                 state.isLoading && state.conversations.isEmpty() -> {
                     Column(modifier = Modifier.fillMaxSize()) {
                         repeat(8) { ShimmerBlock() }
                     }
                 }
 
-                // Error with no content
                 state.errorMessage != null && state.conversations.isEmpty() -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -129,17 +141,21 @@ internal fun HistoryScreen(
                     }
                 }
 
-                // Empty state — only shown after a confirmed successful (empty) response
                 !state.isLoading && !state.isRefreshing && state.conversations.isEmpty() -> {
                     EmptyHistoryContent(modifier = Modifier.fillMaxSize())
                 }
 
-                // Conversation list
                 else -> {
                     LazyColumn(
                         state = listState,
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 16.dp)
+                        contentPadding = PaddingValues(
+                            start = 14.dp,
+                            end = 14.dp,
+                            top = 8.dp,
+                            bottom = 24.dp
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(0.dp)
                     ) {
                         state.groupedConversations.forEach { (group, items) ->
                             item(key = "header_$group") {
@@ -148,8 +164,8 @@ internal fun HistoryScreen(
                             itemsIndexed(
                                 items = items,
                                 key = { _, item -> item.conversation_id }
-                            ) { index, item ->
-                                ConversationListItemRow(
+                            ) { _, item ->
+                                ConversationCard(
                                     item = item,
                                     onClick = {
                                         FarmerChatSdk.config.analyticsListener
@@ -157,17 +173,10 @@ internal fun HistoryScreen(
                                         onConversationSelected(item.conversation_id)
                                     }
                                 )
-                                if (index < items.size - 1) {
-                                    HorizontalDivider(
-                                        modifier = Modifier.padding(start = 72.dp),
-                                        color = MaterialTheme.colorScheme.outlineVariant,
-                                        thickness = 0.5.dp
-                                    )
-                                }
+                                Spacer(Modifier.height(8.dp))
                             }
                         }
 
-                        // Load-more indicator (pagination, not initial load)
                         if (state.isLoading && state.conversations.isNotEmpty()) {
                             item {
                                 Box(
@@ -192,87 +201,161 @@ internal fun HistoryScreen(
 
 @Composable
 private fun GroupHeader(label: String) {
-    Text(
-        text = label,
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    )
-}
-
-@Composable
-private fun ConversationListItemRow(
-    item: ConversationListItem,
-    onClick: () -> Unit
-) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = 4.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val icon: ImageVector = when (item.message_type?.lowercase()) {
-            "image" -> Icons.Filled.ImageSearch
-            "audio" -> Icons.Filled.MicNone
-            else -> Icons.AutoMirrored.Filled.Chat
-        }
-
         Box(
             modifier = Modifier
-                .size(44.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
+                .width(3.dp)
+                .height(14.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            letterSpacing = 0.8.sp,
+            fontSize = 10.sp
+        )
+    }
+}
+
+@Composable
+private fun ConversationCard(
+    item: ConversationListItem,
+    onClick: () -> Unit
+) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 3.dp,
+                shape = RoundedCornerShape(16.dp),
+                spotColor = primaryColor.copy(alpha = 0.08f),
+                ambientColor = primaryColor.copy(alpha = 0.04f)
+            )
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(22.dp)
-            )
-        }
+            val icon: ImageVector = when (item.message_type?.lowercase()) {
+                "image" -> Icons.Filled.ImageSearch
+                "audio" -> Icons.Filled.MicNone
+                else -> Icons.AutoMirrored.Filled.Chat
+            }
 
-        Spacer(Modifier.width(12.dp))
+            // Gradient icon container
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                primaryColor.copy(alpha = 0.18f),
+                                primaryColor.copy(alpha = 0.08f)
+                            )
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = primaryColor,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
 
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = item.conversation_title ?: "Untitled conversation",
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(Modifier.height(2.dp))
-            Text(
-                text = formatDate(item.created_on),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Spacer(Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.conversation_title ?: "Untitled conversation",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    text = formatDate(item.created_on),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 11.sp
+                )
+            }
+
+            // Chevron indicator
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "›",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun EmptyHistoryContent(modifier: Modifier = Modifier) {
+    val primaryColor = MaterialTheme.colorScheme.primary
     Column(
         modifier = modifier.padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.Chat,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-            modifier = Modifier.size(80.dp)
-        )
-        Spacer(Modifier.height(16.dp))
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .clip(CircleShape)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            primaryColor.copy(alpha = 0.12f),
+                            primaryColor.copy(alpha = 0.03f)
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Chat,
+                contentDescription = null,
+                tint = primaryColor.copy(alpha = 0.5f),
+                modifier = Modifier.size(44.dp)
+            )
+        }
+
+        Spacer(Modifier.height(20.dp))
+
         Text(
             text = "No conversations yet",
             style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(Modifier.height(8.dp))
@@ -304,7 +387,6 @@ private fun formatDate(dateString: String): String {
             else -> dt.format(yearFormatter)
         }
     } catch (e: Exception) {
-        // Fallback: strip the T and milliseconds
         dateString.replace("T", " ").substringBefore(".").trim()
     }
 }

@@ -1,5 +1,6 @@
 package com.farmerchat.sdk.ui.chat.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,13 +20,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.farmerchat.sdk.FarmerChatSdk
 import com.farmerchat.sdk.ui.chat.model.ChatMessage
 import com.farmerchat.sdk.ui.chat.udf.ChatState
@@ -44,7 +49,6 @@ internal fun ChatThreadContent(
     contentPadding: PaddingValues = PaddingValues(vertical = 8.dp),
     modifier: Modifier = Modifier
 ) {
-    // Auto-scroll to bottom on new messages
     LaunchedEffect(state.messages.size) {
         if (state.messages.isNotEmpty()) {
             listState.animateScrollToItem(state.messages.size - 1)
@@ -91,7 +95,6 @@ internal fun ChatThreadContent(
             }
         }
 
-        // Inline error at bottom
         if (state.errorMessage != null) {
             item {
                 InlineErrorContent(
@@ -122,31 +125,71 @@ private fun AiResponseBubble(
     val elevation = (config?.aiBubbleElevation ?: 1f).dp
     val fontSize = (config?.messageFontSizeSp ?: 14f)
     val avatarEmoji = config?.aiAvatarEmoji ?: "🌱"
+    val avatarBg = extColors.aiAvatarBackground
 
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top
     ) {
-        // Bot avatar
-        Surface(
-            modifier = Modifier.size(32.dp),
-            shape = CircleShape,
-            color = extColors.aiAvatarBackground
+        // AI avatar with gradient ring
+        Box(
+            modifier = Modifier.size(40.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Box(contentAlignment = Alignment.Center) {
-                androidx.compose.material3.Text(
-                    text = avatarEmoji,
-                    style = MaterialTheme.typography.labelSmall
-                )
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                avatarBg.copy(alpha = 0.30f),
+                                avatarBg.copy(alpha = 0.06f)
+                            )
+                        ),
+                        shape = CircleShape
+                    )
+            )
+            Surface(
+                modifier = Modifier.size(32.dp),
+                shape = CircleShape,
+                color = avatarBg.copy(alpha = 0.22f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = avatarEmoji,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontSize = 16.sp
+                    )
+                }
             }
         }
 
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(10.dp))
 
-        Column(
-            modifier = Modifier.widthIn(max = maxWidth)
-        ) {
+        Column(modifier = Modifier.widthIn(max = maxWidth)) {
+            // AI sender name label
+            Text(
+                text = config?.chatTitle ?: "FarmerChat AI",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 11.sp,
+                modifier = Modifier.padding(start = 2.dp, bottom = 4.dp)
+            )
+
+            // Message bubble with shadow
             Surface(
+                modifier = Modifier.shadow(
+                    elevation = elevation + 2.dp,
+                    shape = RoundedCornerShape(
+                        topStart = 4.dp,
+                        topEnd = r,
+                        bottomStart = r,
+                        bottomEnd = r
+                    ),
+                    ambientColor = extColors.aiBubbleBackground.copy(alpha = 0.1f),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                ),
                 shape = RoundedCornerShape(
                     topStart = 4.dp,
                     topEnd = r,
@@ -160,7 +203,7 @@ private fun AiResponseBubble(
                     markdown = message.text,
                     color = extColors.aiBubbleText,
                     fontSize = fontSize,
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
                 )
             }
 
@@ -175,8 +218,6 @@ private fun AiResponseBubble(
 
             // Follow-up questions — only under the last AI response
             if (isLastAiMessage && !message.followUpQuestions.isNullOrEmpty()) {
-                // Prefer state-level IDs (set after live queries); fall back to IDs baked
-                // into the message itself (loaded from chat history).
                 val ids = suggestedQuestionIds ?: message.followUpQuestionIds
                 SuggestedQuestionsSection(
                     questions = message.followUpQuestions,
@@ -186,6 +227,8 @@ private fun AiResponseBubble(
                     }
                 )
             }
+
+            Spacer(Modifier.height(2.dp))
         }
     }
 }

@@ -26,7 +26,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,11 +38,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.farmerchat.sdk.FarmerChatSdk
 import com.farmerchat.sdk.ui.components.PrimaryInputButtons
@@ -66,13 +67,19 @@ internal fun ChatInputBar(
     val hintText = config?.inputHintText ?: "Ask about your crops..."
 
     Surface(
-        modifier = modifier.fillMaxWidth(),
-        shadowElevation = 8.dp,
-        color = extColors.inputBarBackground
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 12.dp,
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f),
+                ambientColor = Color.Black.copy(alpha = 0.04f)
+            ),
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        color = extColors.inputBarBackground,
+        tonalElevation = 0.dp
     ) {
         Column {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
-
             // Image preview
             AnimatedVisibility(
                 visible = selectedImageUri != null,
@@ -81,24 +88,23 @@ internal fun ChatInputBar(
             ) {
                 selectedImageUri?.let { uri ->
                     Box(
-                        modifier = Modifier
-                            .padding(start = 16.dp, top = 8.dp)
+                        modifier = Modifier.padding(start = 16.dp, top = 10.dp)
                     ) {
                         AsyncImage(
                             model = uri,
                             contentDescription = "Selected image",
                             modifier = Modifier
                                 .size(80.dp)
-                                .clip(RoundedCornerShape(8.dp)),
+                                .clip(RoundedCornerShape(12.dp)),
                             contentScale = ContentScale.Crop
                         )
                         IconButton(
                             onClick = onClearImage,
                             modifier = Modifier
-                                .size(24.dp)
+                                .size(22.dp)
                                 .align(Alignment.TopEnd)
                                 .background(
-                                    color = Color.Black.copy(alpha = 0.55f),
+                                    color = Color.Black.copy(alpha = 0.6f),
                                     shape = CircleShape
                                 )
                         ) {
@@ -106,7 +112,7 @@ internal fun ChatInputBar(
                                 imageVector = Icons.Filled.Close,
                                 contentDescription = "Remove image",
                                 tint = Color.White,
-                                modifier = Modifier.size(14.dp)
+                                modifier = Modifier.size(12.dp)
                             )
                         }
                     }
@@ -116,7 +122,7 @@ internal fun ChatInputBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                    .padding(start = 16.dp, end = 12.dp, top = 10.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.Bottom
             ) {
                 OutlinedTextField(
@@ -128,13 +134,16 @@ internal fun ChatInputBar(
                         Text(
                             text = hintText,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f),
+                            fontSize = 14.sp
                         )
                     },
-                    shape = RoundedCornerShape(24.dp),
+                    shape = RoundedCornerShape(28.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                        focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
                     ),
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Sentences,
@@ -142,10 +151,10 @@ internal fun ChatInputBar(
                     ),
                     keyboardActions = KeyboardActions(onSend = { if (!isLoading) onSend() }),
                     maxLines = 4,
-                    textStyle = MaterialTheme.typography.bodyMedium
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp)
                 )
 
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(10.dp))
 
                 PrimaryInputButtons(
                     hasText = text.isNotBlank() || selectedImageUri != null,
@@ -173,73 +182,86 @@ internal fun ImageSourcePickerSheet(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = "Select image source",
+            text = "Add Photo",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 12.dp)
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                IconButton(
-                    onClick = {
-                        onCameraSelected()
-                        onDismiss()
-                    },
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
                     modifier = Modifier
-                        .size(64.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(16.dp)
-                        )
+                        .size(68.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.PhotoCamera,
-                        contentDescription = "Camera",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
-                    )
+                    IconButton(
+                        onClick = {
+                            onCameraSelected()
+                            onDismiss()
+                        },
+                        modifier = Modifier.size(68.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.PhotoCamera,
+                            contentDescription = "Camera",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
-                Spacer(Modifier.height(4.dp))
-                Text("Camera", style = MaterialTheme.typography.labelMedium)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Camera",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
 
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                IconButton(
-                    onClick = {
-                        onGallerySelected()
-                        onDismiss()
-                    },
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
                     modifier = Modifier
-                        .size(64.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = RoundedCornerShape(16.dp)
-                        )
+                        .size(68.dp)
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.PhotoLibrary,
-                        contentDescription = "Gallery",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
-                    )
+                    IconButton(
+                        onClick = {
+                            onGallerySelected()
+                            onDismiss()
+                        },
+                        modifier = Modifier.size(68.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.PhotoLibrary,
+                            contentDescription = "Gallery",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
-                Spacer(Modifier.height(4.dp))
-                Text("Gallery", style = MaterialTheme.typography.labelMedium)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Gallery",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(12.dp))
         TextButton(
             onClick = onDismiss,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
-            Text("Cancel")
+            Text(
+                "Cancel",
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

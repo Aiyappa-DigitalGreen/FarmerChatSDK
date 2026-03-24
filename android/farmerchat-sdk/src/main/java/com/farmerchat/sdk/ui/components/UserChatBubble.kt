@@ -20,12 +20,13 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
@@ -48,34 +49,73 @@ internal fun UserChatBubble(
     val r = (config?.bubbleCornerRadius ?: 16f).dp
     val fontSize = (config?.messageFontSizeSp ?: 14f).sp
     val showAvatar = config?.showUserAvatar != false
+    val bubbleColor = extColors.userBubbleBackground
 
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Top
     ) {
-        // User avatar
+        // User avatar with gradient ring
         if (showAvatar) {
-            Surface(
-                modifier = Modifier.size(32.dp),
-                shape = CircleShape,
-                color = extColors.userBubbleBackground.copy(alpha = 0.15f)
+            Box(
+                modifier = Modifier.size(40.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Box(contentAlignment = Alignment.Center) {
+                // Outer gradient ring
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    bubbleColor.copy(alpha = 0.25f),
+                                    bubbleColor.copy(alpha = 0.06f)
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                )
+                // Inner avatar circle
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(
+                                    bubbleColor.copy(alpha = 0.22f),
+                                    bubbleColor.copy(alpha = 0.12f)
+                                )
+                            ),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
                         imageVector = Icons.Filled.Person,
                         contentDescription = "User",
-                        tint = extColors.userBubbleBackground,
-                        modifier = Modifier.size(18.dp)
+                        tint = bubbleColor,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(10.dp))
         }
 
         Column(
             modifier = Modifier
                 .widthIn(max = maxWidth)
+                .shadow(
+                    elevation = 3.dp,
+                    shape = RoundedCornerShape(
+                        topStart = 4.dp,
+                        topEnd = r,
+                        bottomStart = r,
+                        bottomEnd = r
+                    ),
+                    ambientColor = bubbleColor.copy(alpha = 0.2f),
+                    spotColor = bubbleColor.copy(alpha = 0.35f)
+                )
                 .clip(
                     RoundedCornerShape(
                         topStart = 4.dp,
@@ -84,8 +124,8 @@ internal fun UserChatBubble(
                         bottomEnd = r
                     )
                 )
-                .background(extColors.userBubbleBackground)
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .background(bubbleColor)
+                .padding(horizontal = 14.dp, vertical = 11.dp),
             horizontalAlignment = Alignment.Start
         ) {
             // Image attachment
@@ -95,10 +135,10 @@ internal fun UserChatBubble(
                     contentDescription = "Attached image",
                     modifier = Modifier
                         .size(200.dp)
-                        .clip(RoundedCornerShape(8.dp)),
+                        .clip(RoundedCornerShape(10.dp)),
                     contentScale = ContentScale.Crop
                 )
-                if (text.isNotBlank()) Spacer(Modifier.height(6.dp))
+                if (text.isNotBlank()) Spacer(Modifier.height(8.dp))
             }
 
             // Audio indicator
@@ -110,7 +150,7 @@ internal fun UserChatBubble(
                     Icon(
                         imageVector = Icons.Filled.Mic,
                         contentDescription = "Voice message",
-                        tint = extColors.userBubbleText,
+                        tint = extColors.userBubbleText.copy(alpha = 0.85f),
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
@@ -122,13 +162,14 @@ internal fun UserChatBubble(
                 }
             }
 
-            // Text
+            // Text content
             if (text.isNotBlank()) {
                 Text(
                     text = text,
                     color = extColors.userBubbleText,
                     fontSize = fontSize,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    lineHeight = (fontSize.value * 1.55f).sp
                 )
             }
         }

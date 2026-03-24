@@ -4,12 +4,18 @@ import android.Manifest
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
@@ -19,11 +25,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -33,9 +39,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.farmerchat.sdk.FarmerChatSdk
 import com.farmerchat.sdk.ui.chat.component.ChatInputBar
 import com.farmerchat.sdk.ui.chat.component.ChatThreadContent
 import com.farmerchat.sdk.ui.chat.component.ImageSourcePickerSheet
@@ -43,6 +54,7 @@ import com.farmerchat.sdk.ui.chat.component.ShimmerBlock
 import com.farmerchat.sdk.ui.chat.udf.ChatAction
 import com.farmerchat.sdk.ui.components.VoiceInputSheet
 import com.farmerchat.sdk.ui.components.rememberPhotoInputLaunchers
+import com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors
 import com.farmerchat.sdk.utils.AudioPlayback
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -58,13 +70,11 @@ internal fun ChatScreen(
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
 
-    // Audio playback controller
     val audioPlayback = remember { AudioPlayback() }
     DisposableEffect(Unit) {
         onDispose { audioPlayback.release() }
     }
 
-    // Handle audio playback URL changes
     LaunchedEffect(state.audioPlaybackUrl) {
         val url = state.audioPlaybackUrl
         if (!url.isNullOrEmpty()) {
@@ -78,14 +88,11 @@ internal fun ChatScreen(
         }
     }
 
-    // UI state
     var inputText by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var showVoiceSheet by remember { mutableStateOf(false) }
     var showImageSourceSheet by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
-
-    // ── Runtime permission launchers ──────────────────────────────────────────
 
     var pendingMicAction by remember { mutableStateOf(false) }
     val micPermissionLauncher = rememberLauncherForActivityResult(
@@ -109,14 +116,10 @@ internal fun ChatScreen(
         pendingCameraAction = false
     }
 
-    // ── Image launchers ───────────────────────────────────────────────────────
-
     val photoLaunchers = rememberPhotoInputLaunchers { uri ->
         selectedImageUri = uri
         showImageSourceSheet = false
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     fun hasMicPermission() = context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) ==
             android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -125,45 +128,61 @@ internal fun ChatScreen(
             android.content.pm.PackageManager.PERMISSION_GRANTED
 
     fun onMicClicked() {
-        if (hasMicPermission()) {
-            showVoiceSheet = true
-        } else {
-            pendingMicAction = true
-            micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-        }
+        if (hasMicPermission()) showVoiceSheet = true
+        else { pendingMicAction = true; micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO) }
     }
 
     fun onCameraClicked() {
-        if (hasCameraPermission()) {
-            showImageSourceSheet = true
-        } else {
-            pendingCameraAction = true
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-        }
+        if (hasCameraPermission()) showImageSourceSheet = true
+        else { pendingCameraAction = true; cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }
     }
 
-    // ── UI ────────────────────────────────────────────────────────────────────
-
-    val config = runCatching { com.farmerchat.sdk.FarmerChatSdk.config }.getOrNull()
-    val extColors = com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors.current
+    val config = runCatching { FarmerChatSdk.config }.getOrNull()
+    val extColors = LocalSdkExtendedColors.current
 
     Scaffold(
         containerColor = extColors.chatBackground,
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = config?.chatTitle ?: "FarmerChat",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = extColors.topBarTitle
-                        )
-                        Text(
-                            text = config?.chatSubtitle ?: "AI Farm Assistant",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = extColors.topBarSubtitle
-                        )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // AI avatar in header
+                        val avatarEmoji = config?.aiAvatarEmoji ?: "🌱"
+                        Surface(
+                            modifier = Modifier.size(34.dp),
+                            shape = CircleShape,
+                            color = extColors.topBarTitle.copy(alpha = 0.15f)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(text = avatarEmoji, fontSize = 16.sp)
+                            }
+                        }
+                        Spacer(Modifier.width(10.dp))
+                        Column {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = config?.chatTitle ?: "FarmerChat",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = extColors.topBarTitle
+                                )
+                                // Online status dot
+                                Box(
+                                    modifier = Modifier
+                                        .size(7.dp)
+                                        .background(Color(0xFF4CAF50), CircleShape)
+                                )
+                            }
+                            Text(
+                                text = config?.chatSubtitle ?: "AI Farm Assistant",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = extColors.topBarSubtitle,
+                                fontSize = 11.sp
+                            )
+                        }
                     }
                 },
                 navigationIcon = {
@@ -271,7 +290,6 @@ internal fun ChatScreen(
         }
     }
 
-    // ── Voice input bottom sheet ──────────────────────────────────────────────
     if (showVoiceSheet) {
         VoiceInputSheet(
             onDismiss = { showVoiceSheet = false },
@@ -288,7 +306,6 @@ internal fun ChatScreen(
         )
     }
 
-    // ── Image source picker bottom sheet ──────────────────────────────────────
     if (showImageSourceSheet) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(

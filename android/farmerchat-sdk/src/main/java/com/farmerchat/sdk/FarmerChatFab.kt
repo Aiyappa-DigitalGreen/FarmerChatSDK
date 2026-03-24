@@ -1,13 +1,21 @@
 package com.farmerchat.sdk
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Forum
@@ -24,7 +32,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -42,18 +52,7 @@ private const val EXIT_ANIM_DURATION_MS = 300L
 
 /**
  * A pre-built Floating Action Button that opens the FarmerChat chatbot as a
- * full-screen overlay that slides up from the bottom — same feel as a bottom
- * sheet but covers the full screen like a new page.
- *
- * All visual defaults (colors, icon, label) are read from [FarmerChatConfig]
- * set during [FarmerChatSdk.initialize], but can be overridden per-FAB.
- *
- * @param extended           If true, shows the label alongside the icon.
- * @param label              Override for the FAB label (defaults to config value).
- * @param conversationId     Open a specific existing conversation.
- * @param fabBackgroundColor FAB background color (defaults to config value).
- * @param fabContentColor    FAB icon/text color (defaults to config value).
- * @param icon               FAB icon (defaults to config value).
+ * full-screen overlay that slides up from the bottom.
  */
 @Composable
 fun FarmerChatFab(
@@ -81,7 +80,6 @@ fun FarmerChatFab(
     var animateIn by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    // When animateIn flips to false, wait for the exit animation then close the Dialog.
     LaunchedEffect(animateIn) {
         if (!animateIn && showChat) {
             delay(EXIT_ANIM_DURATION_MS)
@@ -89,7 +87,28 @@ fun FarmerChatFab(
         }
     }
 
-    // ── FAB button ─────────────────────────────────────────────────────────────
+    // Pulse animation for the FAB
+    val infiniteTransition = rememberInfiniteTransition(label = "fab_pulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.28f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_scale"
+    )
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.38f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1400, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_alpha"
+    )
+
+    // ── FAB button ──────────────────────────────────────────────────────────────
     if (extended) {
         ExtendedFloatingActionButton(
             onClick = {
@@ -101,8 +120,8 @@ fun FarmerChatFab(
                 }
             },
             containerColor = fabBg,
-            contentColor   = fabFg,
-            shape = RoundedCornerShape(16.dp),
+            contentColor = fabFg,
+            shape = RoundedCornerShape(18.dp),
             modifier = modifier
         ) {
             Icon(
@@ -117,28 +136,42 @@ fun FarmerChatFab(
             )
         }
     } else {
-        FloatingActionButton(
-            onClick = {
-                if (FarmerChatSdk.isInitialized()) {
-                    scope.launch {
-                        FarmerChatSdk.ensureTokensInternal()
-                        showChat = true
-                    }
-                }
-            },
-            containerColor = fabBg,
-            contentColor   = fabFg,
-            shape = RoundedCornerShape(16.dp),
-            modifier = modifier
+        // Circular FAB with pulsing ring
+        Box(
+            modifier = modifier,
+            contentAlignment = Alignment.Center
         ) {
-            Icon(imageVector = fabIcon, contentDescription = displayLabel)
+            // Pulse ring drawn behind the FAB
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .scale(pulseScale)
+                    .background(
+                        color = fabBg.copy(alpha = pulseAlpha),
+                        shape = CircleShape
+                    )
+            )
+            FloatingActionButton(
+                onClick = {
+                    if (FarmerChatSdk.isInitialized()) {
+                        scope.launch {
+                            FarmerChatSdk.ensureTokensInternal()
+                            showChat = true
+                        }
+                    }
+                },
+                containerColor = fabBg,
+                contentColor = fabFg,
+                shape = CircleShape
+            ) {
+                Icon(imageVector = fabIcon, contentDescription = displayLabel)
+            }
         }
     }
 
     // ── Full-screen slide-up overlay ────────────────────────────────────────────
     if (showChat) {
         Dialog(
-            // Back press: trigger exit animation; LaunchedEffect closes Dialog after delay
             onDismissRequest = { animateIn = false },
             properties = DialogProperties(
                 usePlatformDefaultWidth = false,
@@ -147,7 +180,6 @@ fun FarmerChatFab(
                 decorFitsSystemWindows = false
             )
         ) {
-            // Trigger slide-in on first composition
             LaunchedEffect(Unit) { animateIn = true }
 
             AnimatedVisibility(
@@ -163,7 +195,7 @@ fun FarmerChatFab(
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
                     color = MaterialTheme.colorScheme.surface,
                     tonalElevation = 0.dp
                 ) {
@@ -171,7 +203,6 @@ fun FarmerChatFab(
                         SdkTheme {
                             FarmerChatNavHost(
                                 startConversationId = conversationId,
-                                // Close: trigger exit animation; LaunchedEffect handles Dialog dismissal
                                 onClose = { animateIn = false }
                             )
                         }
