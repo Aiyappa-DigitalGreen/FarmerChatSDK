@@ -16,6 +16,19 @@
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- Home-screen widget — host app must add this receiver to its own manifest -->
+        <receiver
+            android:name="com.farmerchat.sdk.FarmerChatWidgetProvider"
+            android:exported="true"
+            android:label="FarmChat AI">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/farmerchat_widget_info" />
+        </receiver>
+
         <provider
             android:name="com.farmerchat.sdk.provider.SdkFileProvider"
             android:authorities="${applicationId}.farmerchat.fileprovider"
