@@ -24,7 +24,8 @@ internal data class LanguageScreenState(
 internal class LanguageViewModel(
     private val languageUseCase: LanguageUseCase,
     private val preferenceManager: SdkPreferenceManager,
-    private val countryCode: String = ""
+    private val countryCode: String = "IN",
+    private val stateCode: String = ""
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(LanguageScreenState())
@@ -37,7 +38,7 @@ internal class LanguageViewModel(
     fun fetchLanguages() {
         viewModelScope.launch {
             _state.update { it.copy(languageState = UiState.Loading) }
-            languageUseCase.getSupportedLanguages(countryCode = countryCode).collect { result ->
+            languageUseCase.getSupportedLanguages(countryCode = countryCode, state = stateCode).collect { result ->
                 when (result) {
                     is ApiResult.Success -> {
                         val groups = result.data

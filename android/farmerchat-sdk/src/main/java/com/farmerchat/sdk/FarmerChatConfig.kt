@@ -181,5 +181,13 @@ data class FarmerChatConfig(
 
     // ── Language selection ────────────────────────────────────────────────────
     /** When true, a language selection screen is shown before the chat on first launch. */
-    val showLanguageSelection: Boolean = false
+    val showLanguageSelection: Boolean = false,
+    /**
+     * ISO 3166-1 alpha-2 country code used to fetch supported languages.
+     * Defaults to "IN" (India). Override if your users are in a different region.
+     * Example: "US", "KE", "NG"
+     */
+    val countryCode: String = "IN",
+    /** State/province name used alongside [countryCode] for language filtering. Optional. */
+    val stateCode: String = ""
 )

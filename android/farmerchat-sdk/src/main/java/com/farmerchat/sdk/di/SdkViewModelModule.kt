@@ -27,9 +27,12 @@ internal val sdkViewModelModule = module {
     }
 
     viewModel {
+        val config = runCatching { com.farmerchat.sdk.FarmerChatSdk.config }.getOrNull()
         LanguageViewModel(
             languageUseCase = get(),
-            preferenceManager = get()
+            preferenceManager = get(),
+            countryCode = config?.countryCode ?: "IN",
+            stateCode = config?.stateCode ?: ""
         )
     }
 }
