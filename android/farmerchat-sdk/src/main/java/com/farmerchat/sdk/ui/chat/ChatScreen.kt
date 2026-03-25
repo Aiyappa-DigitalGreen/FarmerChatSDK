@@ -160,19 +160,15 @@ internal fun ChatScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Avatar circle — 36dp green with emoji
-                        Box(
+                        // Avatar circle — logo image
+                        Image(
+                            painter = painterResource(R.drawable.sdk_logo),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .size(36.dp)
                                 .clip(CircleShape)
-                                .background(SdkGreen500),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = config?.aiAvatarEmoji ?: "🌱",
-                                fontSize = 17.sp
-                            )
-                        }
+                        )
                         Spacer(Modifier.width(10.dp))
                         Column {
                             Row(

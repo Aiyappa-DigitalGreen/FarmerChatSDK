@@ -4,6 +4,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,9 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.farmerchat.sdk.R
 import com.farmerchat.sdk.FarmerChatSdk
 import com.farmerchat.sdk.ui.chat.model.ChatMessage
 import com.farmerchat.sdk.ui.chat.udf.ChatState
@@ -189,15 +193,14 @@ private fun AiResponseBubble(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Box(
+                        Image(
+                            painter = painterResource(R.drawable.sdk_logo),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
                             modifier = Modifier
                                 .size(22.dp)
                                 .clip(CircleShape)
-                                .background(SdkGreen500),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = avatarEmoji, fontSize = 11.sp)
-                        }
+                        )
                         Spacer(Modifier.width(6.dp))
                         Text(
                             text = aiName,

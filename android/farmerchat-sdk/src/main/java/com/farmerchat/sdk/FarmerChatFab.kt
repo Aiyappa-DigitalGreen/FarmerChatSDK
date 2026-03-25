@@ -17,8 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -37,9 +37,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.farmerchat.sdk.R
 import com.farmerchat.sdk.di.SdkKoinHolder
 import com.farmerchat.sdk.ui.FarmerChatNavHost
 import com.farmerchat.sdk.ui.theme.SdkGreen800
@@ -74,7 +77,7 @@ fun FarmerChatFab(
     val fabFg = fabContentColor
         ?: config?.fabContentColor?.let { Color(it) }
         ?: Color.White
-    val fabIcon = icon ?: config?.fabIcon ?: Icons.Filled.Forum
+    val fabIcon = icon ?: config?.fabIcon
 
     var showChat by remember { mutableStateOf(false) }
     var animateIn by remember { mutableStateOf(false) }
@@ -124,16 +127,18 @@ fun FarmerChatFab(
             shape = RoundedCornerShape(18.dp),
             modifier = modifier
         ) {
-            Icon(
-                imageVector = fabIcon,
-                contentDescription = displayLabel,
-                modifier = Modifier.size(20.dp)
-            )
+            if (fabIcon != null) {
+                Icon(imageVector = fabIcon, contentDescription = displayLabel, modifier = Modifier.size(20.dp))
+            } else {
+                Image(
+                    painter = painterResource(R.drawable.sdk_logo),
+                    contentDescription = displayLabel,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
             Spacer(Modifier.width(8.dp))
-            Text(
-                text = displayLabel,
-                style = MaterialTheme.typography.labelLarge
-            )
+            Text(text = displayLabel, style = MaterialTheme.typography.labelLarge)
         }
     } else {
         // Circular FAB with pulsing ring
@@ -164,7 +169,16 @@ fun FarmerChatFab(
                 contentColor = fabFg,
                 shape = CircleShape
             ) {
-                Icon(imageVector = fabIcon, contentDescription = displayLabel)
+                if (fabIcon != null) {
+                    Icon(imageVector = fabIcon, contentDescription = displayLabel)
+                } else {
+                    Image(
+                        painter = painterResource(R.drawable.sdk_logo),
+                        contentDescription = displayLabel,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
             }
         }
     }

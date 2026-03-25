@@ -115,22 +115,21 @@ internal fun LanguageSelectionScreen(
         ) {
             Spacer(Modifier.height(56.dp))
 
-            // Bouncy logo — 56dp green circle with seedling emoji
+            // Bouncy logo — real image
             val logoScale by animateFloatAsState(
                 targetValue = if (headerAlpha.value > 0.4f) 1f else 0.5f,
                 animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
                 label = "logoScale"
             )
-            Box(
+            Image(
+                painter = painterResource(R.drawable.sdk_logo),
+                contentDescription = "FarmChat AI",
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(72.dp)
                     .scale(logoScale)
                     .clip(CircleShape)
-                    .background(SdkGreen500),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "🌱", fontSize = 26.sp)
-            }
+            )
 
             Spacer(Modifier.height(14.dp))
 
