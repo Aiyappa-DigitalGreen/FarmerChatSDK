@@ -28,10 +28,17 @@ internal val sdkViewModelModule = module {
 
     viewModel {
         val config = runCatching { com.farmerchat.sdk.FarmerChatSdk.config }.getOrNull()
+        // Auto-detect country from SIM/network/locale; config override wins if explicitly set
+        val detectedCountry = com.farmerchat.sdk.utils.CountryDetector.detect(
+            context = androidContext(),
+            fallback = config?.countryCode ?: "IN"
+        )
+        val effectiveCountry = if (config?.countryCode != null &&
+            config.countryCode != "IN") config.countryCode else detectedCountry
         LanguageViewModel(
             languageUseCase = get(),
             preferenceManager = get(),
-            countryCode = config?.countryCode ?: "IN",
+            countryCode = effectiveCountry,
             stateCode = config?.stateCode ?: ""
         )
     }
