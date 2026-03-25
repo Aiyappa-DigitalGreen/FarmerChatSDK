@@ -57,7 +57,6 @@ import com.farmerchat.sdk.FarmerChatSdk
 import com.farmerchat.sdk.domain.model.history.ConversationListItem
 import com.farmerchat.sdk.ui.chat.component.ShimmerBlock
 import com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors
-import com.farmerchat.sdk.ui.theme.SdkDarkSurface
 import com.farmerchat.sdk.ui.theme.SdkTextMuted
 import com.farmerchat.sdk.ui.theme.SdkTextSecondary
 import org.koin.androidx.compose.koinViewModel
@@ -65,6 +64,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+
+// Design-exact colors
+private val HistoryBackground = Color(0xFF0D1A0B)
+private val HistoryCardBg     = Color(0xFF172213)
+private val HistoryGroupLabel = Color(0xFF4A5E48)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,7 +94,7 @@ internal fun HistoryScreen(
     }
 
     Scaffold(
-        containerColor = extColors.chatBackground,
+        containerColor = HistoryBackground,
         topBar = {
             TopAppBar(
                 title = {
@@ -99,13 +103,13 @@ internal fun HistoryScreen(
                             text = "Chat History",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = extColors.topBarTitle,
+                            color = Color.White,
                             fontSize = 20.sp
                         )
                         Text(
                             text = "Your farming conversations",
                             style = MaterialTheme.typography.bodySmall,
-                            color = extColors.topBarSubtitle,
+                            color = SdkTextSecondary,
                             fontSize = 12.sp
                         )
                     }
@@ -115,17 +119,18 @@ internal fun HistoryScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = extColors.topBarTitle
+                            tint = Color.White
                         )
                     }
                 },
                 actions = {
+                    // "+" green circle 36dp in actions
                     Box(
                         modifier = Modifier
                             .padding(end = 12.dp)
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
+                            .background(Color(0xFF4CAF50))
                             .clickable { onNavigateUp() },
                         contentAlignment = Alignment.Center
                     ) {
@@ -138,7 +143,7 @@ internal fun HistoryScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = extColors.topBarBackground
+                    containerColor = HistoryBackground
                 )
             )
         }
@@ -209,7 +214,7 @@ internal fun HistoryScreen(
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(24.dp),
                                         strokeWidth = 2.dp,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = Color(0xFF4CAF50)
                                     )
                                 }
                             }
@@ -223,8 +228,12 @@ internal fun HistoryScreen(
 
 @Composable
 private fun SearchBar(query: String, onQueryChange: (String) -> Unit, modifier: Modifier = Modifier) {
+    // bg=Color(0xFF172213), corners=14dp
     Box(
-        modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(SdkDarkSurface)
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(HistoryCardBg)
     ) {
         TextField(
             value = query,
@@ -232,16 +241,20 @@ private fun SearchBar(query: String, onQueryChange: (String) -> Unit, modifier: 
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Search conversations...", color = SdkTextMuted, fontSize = 14.sp) },
             leadingIcon = {
-                Icon(Icons.Filled.Search, contentDescription = "Search",
-                    tint = SdkTextMuted, modifier = Modifier.size(20.dp))
+                Icon(
+                    Icons.Filled.Search,
+                    contentDescription = "Search",
+                    tint = SdkTextMuted,
+                    modifier = Modifier.size(20.dp)
+                )
             },
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
             ),
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
             singleLine = true,
@@ -252,12 +265,13 @@ private fun SearchBar(query: String, onQueryChange: (String) -> Unit, modifier: 
 
 @Composable
 private fun GroupHeader(label: String) {
+    // "TODAY"/"YESTERDAY" 10sp uppercase Color(0xFF4A5E48) letterSpacing=1.5sp, padding start=20dp
     Text(
         text = label.uppercase(),
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.Bold,
-        color = SdkTextMuted,
-        letterSpacing = 1.2.sp,
+        color = HistoryGroupLabel,
+        letterSpacing = 1.5.sp,
         fontSize = 10.sp,
         modifier = Modifier.padding(start = 20.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)
     )
@@ -307,19 +321,26 @@ private fun ConversationCard(item: ConversationListItem, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(SdkDarkSurface)
+            .clip(RoundedCornerShape(14.dp))
+            .background(HistoryCardBg)
             .clickable(onClick = onClick)
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Left: 44dp circle bg=icon_color.copy(alpha=0.18f) with emoji 20sp
         Box(
-            modifier = Modifier.size(48.dp).clip(CircleShape).background(icon.color.copy(alpha = 0.2f)),
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(icon.color.copy(alpha = 0.18f)),
             contentAlignment = Alignment.Center
-        ) { Text(text = icon.emoji, fontSize = 22.sp) }
+        ) {
+            Text(text = icon.emoji, fontSize = 20.sp)
+        }
 
         Spacer(Modifier.width(12.dp))
 
+        // Center column: title (1 line ellipsis) + Row(time + tag chip)
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = item.conversation_title ?: "Untitled conversation",
@@ -327,29 +348,47 @@ private fun ConversationCard(item: ConversationListItem, onClick: () -> Unit) {
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = Color.White,
                 fontSize = 14.sp
             )
             Spacer(Modifier.height(3.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(text = formatDate(item.created_on), style = MaterialTheme.typography.bodySmall,
-                    color = SdkTextSecondary, fontSize = 11.sp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = formatDate(item.created_on),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = SdkTextSecondary,
+                    fontSize = 11.sp
+                )
                 if (tag != null) {
+                    // Tag chip: bg=tag_color.copy(alpha=0.15f), padding h=6dp v=2dp, corner=8dp
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(tag.second.copy(alpha = 0.18f))
+                            .background(tag.second.copy(alpha = 0.15f))
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
-                        Text(text = tag.first, fontSize = 10.sp, color = tag.second,
-                            fontWeight = FontWeight.Medium)
+                        Text(
+                            text = tag.first,
+                            fontSize = 10.sp,
+                            color = tag.second,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
                 }
             }
         }
 
+        // Right: "›" 20sp Color(0xFF4A5E48)
         Spacer(Modifier.width(8.dp))
-        Text(text = "›", color = SdkTextMuted, fontSize = 22.sp, fontWeight = FontWeight.Light)
+        Text(
+            text = "›",
+            color = HistoryGroupLabel,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Light
+        )
     }
 }
 
@@ -361,16 +400,25 @@ private fun EmptyHistoryContent(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center
     ) {
         Box(
-            modifier = Modifier.size(90.dp).clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+            modifier = Modifier
+                .size(90.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF4CAF50).copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) { Text(text = "💬", fontSize = 40.sp) }
         Spacer(Modifier.height(20.dp))
-        Text("No conversations yet", style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+        Text(
+            "No conversations yet",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = Color.White
+        )
         Spacer(Modifier.height(8.dp))
-        Text("Your past conversations will appear here",
-            style = MaterialTheme.typography.bodyMedium, color = SdkTextSecondary)
+        Text(
+            "Your past conversations will appear here",
+            style = MaterialTheme.typography.bodyMedium,
+            color = SdkTextSecondary
+        )
     }
 }
 

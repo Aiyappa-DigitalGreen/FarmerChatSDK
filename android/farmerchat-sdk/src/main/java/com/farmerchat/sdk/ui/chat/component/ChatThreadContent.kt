@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,6 +44,9 @@ import com.farmerchat.sdk.ui.components.UserChatBubble
 import com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors
 import com.farmerchat.sdk.ui.theme.SdkGreen500
 import com.farmerchat.sdk.ui.theme.SdkTextSecondary
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 internal fun ChatThreadContent(
@@ -77,12 +79,25 @@ internal fun ChatThreadContent(
                         enter = slideInHorizontally(tween(280)) { it / 2 } + fadeIn(tween(280)),
                         modifier = Modifier.animateItem(tween(280))
                     ) {
-                        UserChatBubble(
-                            text = message.text,
-                            imageUri = message.imageUri,
-                            audioUri = message.audioUri,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                        )
+                        // User bubble + timestamp below, right-aligned
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp),
+                            horizontalAlignment = Alignment.End
+                        ) {
+                            UserChatBubble(
+                                text = message.text,
+                                imageUri = message.imageUri,
+                                audioUri = message.audioUri
+                            )
+                            Spacer(Modifier.height(3.dp))
+                            Text(
+                                text = currentTimeString(),
+                                fontSize = 10.sp,
+                                color = Color(0xFF5A6B58)
+                            )
+                        }
                     }
                 }
 
@@ -147,7 +162,6 @@ private fun AiResponseBubble(
     val fontSize = (config?.messageFontSizeSp ?: 14f)
     val avatarEmoji = config?.aiAvatarEmoji ?: "🌱"
     val aiName = config?.chatTitle ?: "FarmerChat AI"
-    val primaryColor = MaterialTheme.colorScheme.primary
 
     // Pointer at top-left for AI
     val bubbleShape = RoundedCornerShape(
@@ -155,38 +169,53 @@ private fun AiResponseBubble(
     )
 
     Column(modifier = modifier.widthIn(max = maxWidth)) {
-        // Card bubble — avatar+name header is INSIDE the card (matches design)
-        Surface(
-            shape = bubbleShape,
-            color = extColors.aiBubbleBackground,
-            shadowElevation = 4.dp,
-            tonalElevation = 0.dp
+        // Card bubble with shadow elevation=6dp
+        Box(
+            modifier = Modifier
+                .shadow(
+                    elevation = 6.dp,
+                    shape = bubbleShape,
+                    ambientColor = Color(0xFF1A2318).copy(alpha = 0.3f),
+                    spotColor = Color(0xFF1A2318).copy(alpha = 0.4f)
+                )
+                .clip(bubbleShape)
+                .background(Color(0xFF1A2318))
         ) {
             Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-                // Header: emoji + name
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                // Header row: 22dp green circle + "FarmerChat AI" green semibold + Spacer + timestamp
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Box(
                         modifier = Modifier
-                            .size(24.dp)
+                            .size(22.dp)
                             .clip(CircleShape)
-                            .background(primaryColor),
+                            .background(SdkGreen500),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = avatarEmoji, fontSize = 12.sp)
+                        Text(text = avatarEmoji, fontSize = 11.sp)
                     }
-                    Spacer(Modifier.width(7.dp))
+                    Spacer(Modifier.width(6.dp))
                     Text(
                         text = aiName,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = primaryColor,
+                        color = SdkGreen500,
                         fontSize = 11.sp
+                    )
+                    Spacer(Modifier.weight(1f))
+                    // Timestamp on same line as name, right side
+                    Text(
+                        text = currentTimeString(),
+                        fontSize = 10.sp,
+                        color = Color(0xFF5A6B58)
                     )
                 }
                 Spacer(Modifier.height(10.dp))
                 MarkdownText(
                     markdown = message.text,
-                    color = extColors.aiBubbleText,
+                    color = Color(0xFFDCE8DA),
                     fontSize = fontSize,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -214,5 +243,14 @@ private fun AiResponseBubble(
         }
 
         Spacer(Modifier.height(2.dp))
+    }
+}
+
+// Helper: returns current time as "h:mm a" string
+private fun currentTimeString(): String {
+    return try {
+        LocalTime.now().format(DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault()))
+    } catch (e: Exception) {
+        ""
     }
 }

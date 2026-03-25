@@ -74,12 +74,13 @@ import com.farmerchat.sdk.ui.theme.SdkGreen500
 import com.farmerchat.sdk.ui.theme.SdkTextSecondary
 import org.koin.androidx.compose.koinViewModel
 
-// ── Colors for the farming hero background ──────────────────────────────────
-private val SkyTop       = Color(0xFF1A2E0A)   // deep night-green sky
-private val SkyMid       = Color(0xFF2D4A18)   // treeline horizon
-private val FieldGreen   = Color(0xFF1A3A0D)   // paddy field base
-private val FieldAccent  = Color(0xFF243E12)   // terrace ridge tint
-private val GroundDark   = Color(0xFF0A1808)   // foreground dark
+// ── Colors for the warm rice-paddy photo-feel background ────────────────────
+private val SkyTop       = Color(0xFFB5733A)   // warm amber/orange sky
+private val SkyMidAmber  = Color(0xFF8B5A2B)   // deeper amber
+private val HorizonGreen = Color(0xFF4A6830)   // transition green-grey at horizon
+private val FieldGreen   = Color(0xFF2A5018)   // rice field green
+private val FieldDeep    = Color(0xFF1A3A0D)   // deeper green
+private val GroundDark   = Color(0xFF0D1F08)   // near-black foreground
 
 @Composable
 internal fun LanguageSelectionScreen(
@@ -103,10 +104,10 @@ internal fun LanguageSelectionScreen(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        0.0f to Color.Black.copy(alpha = 0.45f),
-                        0.35f to Color.Black.copy(alpha = 0.30f),
-                        0.65f to Color.Black.copy(alpha = 0.55f),
-                        1.0f to Color.Black.copy(alpha = 0.82f)
+                        0.0f to Color.Black.copy(alpha = 0.15f),
+                        0.45f to Color.Black.copy(alpha = 0.25f),
+                        0.70f to Color.Black.copy(alpha = 0.55f),
+                        1.0f to Color.Black.copy(alpha = 0.78f)
                     )
                 )
         )
@@ -119,7 +120,7 @@ internal fun LanguageSelectionScreen(
         ) {
             Spacer(Modifier.height(56.dp))
 
-            // Bouncy logo
+            // Bouncy logo — 56dp green circle with seedling emoji
             val logoScale by animateFloatAsState(
                 targetValue = if (headerAlpha.value > 0.4f) 1f else 0.5f,
                 animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
@@ -127,20 +128,16 @@ internal fun LanguageSelectionScreen(
             )
             Box(
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(56.dp)
                     .scale(logoScale)
                     .clip(CircleShape)
-                    .background(
-                        Brush.radialGradient(
-                            listOf(SdkGreen500.copy(alpha = 0.9f), Color(0xFF2E7D32))
-                        )
-                    ),
+                    .background(SdkGreen500),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "🌱", fontSize = 36.sp)
+                Text(text = "🌱", fontSize = 26.sp)
             }
 
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(14.dp))
 
             AnimatedVisibility(
                 visible = headerAlpha.value > 0.3f,
@@ -148,7 +145,7 @@ internal fun LanguageSelectionScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "FarmerChat AI",
+                        text = "FarmChat AI",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -158,44 +155,28 @@ internal fun LanguageSelectionScreen(
                     Text(
                         text = "Smart Farming Assistant",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 14.sp
+                        color = Color.White.copy(alpha = 0.65f),
+                        fontSize = 13.sp
                     )
                 }
             }
 
-            Spacer(Modifier.height(30.dp))
+            Spacer(Modifier.height(28.dp))
 
+            // "SELECT YOUR LANGUAGE" label — left-aligned, NO divider lines
             AnimatedVisibility(
                 visible = headerAlpha.value > 0.5f,
                 enter = fadeIn(tween(400))
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .height(1.dp)
-                            .weight(1f)
-                            .background(SdkGreen500.copy(alpha = 0.4f))
-                    )
-                    Text(
-                        text = "SELECT YOUR LANGUAGE",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = SdkGreen500,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.5.sp,
-                        fontSize = 10.sp
-                    )
-                    Box(
-                        modifier = Modifier
-                            .height(1.dp)
-                            .weight(1f)
-                            .background(SdkGreen500.copy(alpha = 0.4f))
-                    )
-                }
+                Text(
+                    text = "SELECT YOUR LANGUAGE",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = SdkGreen500,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.8.sp,
+                    fontSize = 10.sp,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
 
             Spacer(Modifier.height(12.dp))
@@ -266,23 +247,12 @@ internal fun LanguageSelectionScreen(
                             color = Color.White
                         )
                     } else {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            Text(
-                                text = "Continue",
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.White,
-                                fontSize = 16.sp
-                            )
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
+                        Text(
+                            text = "Continue →",
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                            fontSize = 16.sp
+                        )
                     }
                 }
             }
@@ -292,19 +262,21 @@ internal fun LanguageSelectionScreen(
     }
 }
 
-// ── Farming-themed Canvas background ────────────────────────────────────────
+// ── Warm rice-paddy Canvas background ───────────────────────────────────────
 
 private fun DrawScope.drawFarmingBackground() {
     val w = size.width
     val h = size.height
 
-    // Sky gradient
+    // Sky gradient — warm amber top to dark green bottom
     drawRect(
         brush = Brush.verticalGradient(
-            0.0f to SkyTop,
-            0.4f to SkyMid,
-            0.65f to FieldGreen,
-            1.0f to GroundDark
+            0.0f  to SkyTop,
+            0.15f to SkyMidAmber,
+            0.30f to HorizonGreen,
+            0.55f to FieldGreen,
+            0.80f to FieldDeep,
+            1.0f  to GroundDark
         )
     )
 
@@ -324,14 +296,14 @@ private fun DrawScope.drawFarmingBackground() {
             startY = h * 0.15f,
             endY = h * 0.55f,
             colorStops = arrayOf(
-                0.0f to Color(0xFF253D16),
-                1.0f to Color(0xFF1A2D10)
+                0.0f to Color(0xFF1A2A10),
+                1.0f to Color(0xFF0D1A08)
             )
         )
     )
 
     // Rice terrace lines (horizontal arcs across the lower half)
-    val terraceColor = FieldAccent.copy(alpha = 0.55f)
+    val terraceLineColor = Color(0xFF3D6025).copy(alpha = 0.6f)
     val terraceCount = 7
     for (i in 0 until terraceCount) {
         val yBase = h * (0.52f + i * 0.068f)
@@ -345,12 +317,12 @@ private fun DrawScope.drawFarmingBackground() {
         }
         drawPath(
             path = path,
-            color = terraceColor,
+            color = terraceLineColor,
             style = androidx.compose.ui.graphics.drawscope.Stroke(
                 width = 1.5f + i * 0.3f
             )
         )
-        // Fill between terraces for depth
+        // Fill between terraces for depth — alternating slightly different greens
         if (i < terraceCount - 1) {
             val yNext = h * (0.52f + (i + 1) * 0.068f)
             val fillPath = Path().apply {
@@ -368,36 +340,26 @@ private fun DrawScope.drawFarmingBackground() {
                 )
                 close()
             }
-            drawPath(
-                path = fillPath,
-                color = Color(0xFF1E3810).copy(alpha = 0.4f + i * 0.04f)
-            )
+            val fillColor = if (i % 2 == 0)
+                Color(0xFF1E3A10).copy(alpha = 0.4f + i * 0.04f)
+            else
+                Color(0xFF2A4A18).copy(alpha = 0.35f + i * 0.04f)
+            drawPath(path = fillPath, color = fillColor)
         }
     }
 
-    // Subtle stars in the sky
-    val starPositions = listOf(
-        Offset(w * 0.12f, h * 0.06f), Offset(w * 0.35f, h * 0.04f),
-        Offset(w * 0.58f, h * 0.08f), Offset(w * 0.78f, h * 0.03f),
-        Offset(w * 0.92f, h * 0.07f), Offset(w * 0.22f, h * 0.12f),
-        Offset(w * 0.68f, h * 0.11f), Offset(w * 0.48f, h * 0.02f)
-    )
-    starPositions.forEach { pos ->
-        drawCircle(color = Color.White.copy(alpha = 0.55f), radius = 1.5f, center = pos)
-    }
-
-    // Soft glow at horizon (sun/moon rising)
+    // Soft warm glow at horizon (sun setting)
     drawCircle(
         brush = Brush.radialGradient(
             colors = listOf(
-                Color(0xFF8BC34A).copy(alpha = 0.18f),
+                Color(0xFFD4884A).copy(alpha = 0.22f),
                 Color.Transparent
             ),
-            center = Offset(w * 0.5f, h * 0.35f),
+            center = Offset(w * 0.5f, h * 0.30f),
             radius = w * 0.55f
         ),
         radius = w * 0.55f,
-        center = Offset(w * 0.5f, h * 0.35f)
+        center = Offset(w * 0.5f, h * 0.30f)
     )
 }
 
@@ -425,8 +387,8 @@ private fun LanguageShimmer() {
                     .fillMaxWidth()
                     .height(72.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(Color.White.copy(alpha = alpha * 0.12f))
-                    .border(1.dp, Color.White.copy(alpha = alpha * 0.15f), RoundedCornerShape(14.dp))
+                    .background(Color.Black.copy(alpha = alpha * 0.45f))
+                    .border(1.dp, Color.White.copy(alpha = alpha * 0.12f), RoundedCornerShape(14.dp))
             )
         }
     }
@@ -496,22 +458,22 @@ private fun LanguageCard(
             .alpha(alpha)
             .clip(RoundedCornerShape(14.dp))
             .background(
-                if (isSelected) SdkGreen500.copy(alpha = 0.22f)
-                else Color.White.copy(alpha = 0.10f)
+                if (isSelected) Color(0xFF1A3A0D).copy(alpha = 0.7f)
+                else Color(0xFF000000).copy(alpha = 0.40f)
             )
             .border(
                 width = if (isSelected) 1.5.dp else 1.dp,
-                color = if (isSelected) SdkGreen500 else Color.White.copy(alpha = 0.15f),
+                color = if (isSelected) Color(0xFF4CAF50) else Color(0xFFFFFFFF).copy(alpha = 0.12f),
                 shape = RoundedCornerShape(14.dp)
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 14.dp),
+            .padding(horizontal = 14.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = Icons.Filled.VolumeUp,
             contentDescription = null,
-            tint = if (isSelected) SdkGreen500 else SdkTextSecondary,
+            tint = if (isSelected) SdkGreen500 else Color(0xFF6B7C69),
             modifier = Modifier.size(18.dp)
         )
         Column(
