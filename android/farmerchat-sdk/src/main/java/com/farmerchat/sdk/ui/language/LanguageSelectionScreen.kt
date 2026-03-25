@@ -16,6 +16,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -57,30 +58,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.farmerchat.sdk.R
 import com.farmerchat.sdk.base.UiState
 import com.farmerchat.sdk.domain.model.language.SupportedLanguage
 import com.farmerchat.sdk.ui.theme.SdkGreen500
 import com.farmerchat.sdk.ui.theme.SdkTextSecondary
 import org.koin.androidx.compose.koinViewModel
-
-// ── Colors for the warm rice-paddy photo-feel background ────────────────────
-private val SkyTop       = Color(0xFFB5733A)   // warm amber/orange sky
-private val SkyMidAmber  = Color(0xFF8B5A2B)   // deeper amber
-private val HorizonGreen = Color(0xFF4A6830)   // transition green-grey at horizon
-private val FieldGreen   = Color(0xFF2A5018)   // rice field green
-private val FieldDeep    = Color(0xFF1A3A0D)   // deeper green
-private val GroundDark   = Color(0xFF0D1F08)   // near-black foreground
 
 @Composable
 internal fun LanguageSelectionScreen(
@@ -93,21 +85,24 @@ internal fun LanguageSelectionScreen(
     val headerAlpha = remember { Animatable(0f) }
     LaunchedEffect(Unit) { headerAlpha.animateTo(1f, tween(700)) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .drawBehind { drawFarmingBackground() }
-    ) {
-        // Dark scrim so content is readable over the "photo-like" background
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Real photo background
+        Image(
+            painter = painterResource(R.drawable.sdk_bg_language),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        // Dark scrim so content is readable over the photo
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        0.0f to Color.Black.copy(alpha = 0.15f),
-                        0.45f to Color.Black.copy(alpha = 0.25f),
-                        0.70f to Color.Black.copy(alpha = 0.55f),
-                        1.0f to Color.Black.copy(alpha = 0.78f)
+                        0.0f to Color.Black.copy(alpha = 0.25f),
+                        0.45f to Color.Black.copy(alpha = 0.45f),
+                        0.70f to Color.Black.copy(alpha = 0.68f),
+                        1.0f to Color.Black.copy(alpha = 0.88f)
                     )
                 )
         )
@@ -260,107 +255,6 @@ internal fun LanguageSelectionScreen(
             Spacer(Modifier.height(32.dp))
         }
     }
-}
-
-// ── Warm rice-paddy Canvas background ───────────────────────────────────────
-
-private fun DrawScope.drawFarmingBackground() {
-    val w = size.width
-    val h = size.height
-
-    // Sky gradient — warm amber top to dark green bottom
-    drawRect(
-        brush = Brush.verticalGradient(
-            0.0f  to SkyTop,
-            0.15f to SkyMidAmber,
-            0.30f to HorizonGreen,
-            0.55f to FieldGreen,
-            0.80f to FieldDeep,
-            1.0f  to GroundDark
-        )
-    )
-
-    // Mountain silhouette — two overlapping peaks
-    val mountainPath = Path().apply {
-        moveTo(0f, h * 0.48f)
-        cubicTo(w * 0.15f, h * 0.28f, w * 0.28f, h * 0.20f, w * 0.38f, h * 0.32f)
-        cubicTo(w * 0.45f, h * 0.25f, w * 0.55f, h * 0.18f, w * 0.62f, h * 0.30f)
-        cubicTo(w * 0.72f, h * 0.22f, w * 0.85f, h * 0.16f, w, h * 0.34f)
-        lineTo(w, h)
-        lineTo(0f, h)
-        close()
-    }
-    drawPath(
-        path = mountainPath,
-        brush = Brush.verticalGradient(
-            startY = h * 0.15f,
-            endY = h * 0.55f,
-            colorStops = arrayOf(
-                0.0f to Color(0xFF1A2A10),
-                1.0f to Color(0xFF0D1A08)
-            )
-        )
-    )
-
-    // Rice terrace lines (horizontal arcs across the lower half)
-    val terraceLineColor = Color(0xFF3D6025).copy(alpha = 0.6f)
-    val terraceCount = 7
-    for (i in 0 until terraceCount) {
-        val yBase = h * (0.52f + i * 0.068f)
-        val path = Path().apply {
-            moveTo(0f, yBase)
-            cubicTo(
-                w * 0.25f, yBase - h * 0.025f * (1 - i * 0.08f),
-                w * 0.75f, yBase + h * 0.02f * (1 - i * 0.06f),
-                w, yBase - h * 0.01f
-            )
-        }
-        drawPath(
-            path = path,
-            color = terraceLineColor,
-            style = androidx.compose.ui.graphics.drawscope.Stroke(
-                width = 1.5f + i * 0.3f
-            )
-        )
-        // Fill between terraces for depth — alternating slightly different greens
-        if (i < terraceCount - 1) {
-            val yNext = h * (0.52f + (i + 1) * 0.068f)
-            val fillPath = Path().apply {
-                moveTo(0f, yBase)
-                cubicTo(
-                    w * 0.25f, yBase - h * 0.025f * (1 - i * 0.08f),
-                    w * 0.75f, yBase + h * 0.02f * (1 - i * 0.06f),
-                    w, yBase - h * 0.01f
-                )
-                lineTo(w, yNext)
-                cubicTo(
-                    w * 0.75f, yNext + h * 0.02f,
-                    w * 0.25f, yNext - h * 0.02f,
-                    0f, yNext
-                )
-                close()
-            }
-            val fillColor = if (i % 2 == 0)
-                Color(0xFF1E3A10).copy(alpha = 0.4f + i * 0.04f)
-            else
-                Color(0xFF2A4A18).copy(alpha = 0.35f + i * 0.04f)
-            drawPath(path = fillPath, color = fillColor)
-        }
-    }
-
-    // Soft warm glow at horizon (sun setting)
-    drawCircle(
-        brush = Brush.radialGradient(
-            colors = listOf(
-                Color(0xFFD4884A).copy(alpha = 0.22f),
-                Color.Transparent
-            ),
-            center = Offset(w * 0.5f, h * 0.30f),
-            radius = w * 0.55f
-        ),
-        radius = w * 0.55f,
-        center = Offset(w * 0.5f, h * 0.30f)
-    )
 }
 
 // ── Shimmer loading ──────────────────────────────────────────────────────────

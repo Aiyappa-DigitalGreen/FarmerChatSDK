@@ -9,6 +9,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,7 +53,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.farmerchat.sdk.R
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -150,7 +155,7 @@ internal fun ChatScreen(
     val extColors = LocalSdkExtendedColors.current
 
     Scaffold(
-        containerColor = Color(0xFF0D1A0B),
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 title = {
@@ -227,7 +232,7 @@ internal fun ChatScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF0D1A0B)
+                    containerColor = Color.Black.copy(alpha = 0.35f)
                 )
             )
         },
@@ -259,6 +264,25 @@ internal fun ChatScreen(
             }
         }
     ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Photo background
+            Image(
+                painter = painterResource(R.drawable.sdk_bg_chat),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+            // Dark scrim so chat content stays legible
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            0.0f to Color.Black.copy(alpha = 0.55f),
+                            1.0f to Color.Black.copy(alpha = 0.80f)
+                        )
+                    )
+            )
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -297,6 +321,7 @@ internal fun ChatScreen(
                 }
             }
         }
+        } // close background Box
     }
 
     if (showVoiceSheet) {
