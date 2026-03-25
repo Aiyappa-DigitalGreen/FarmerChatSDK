@@ -48,9 +48,6 @@ import com.farmerchat.sdk.ui.components.UserChatBubble
 import com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors
 import com.farmerchat.sdk.ui.theme.SdkGreen500
 import com.farmerchat.sdk.ui.theme.SdkTextSecondary
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @Composable
 internal fun ChatThreadContent(
@@ -97,7 +94,7 @@ internal fun ChatThreadContent(
                             )
                             Spacer(Modifier.height(3.dp))
                             Text(
-                                text = currentTimeString(),
+                                text = message.timeString,
                                 fontSize = 10.sp,
                                 color = Color(0xFF5A6B58)
                             )
@@ -212,7 +209,7 @@ private fun AiResponseBubble(
                         Spacer(Modifier.weight(1f))
                         // Timestamp on same line as name, right side
                         Text(
-                            text = currentTimeString(),
+                            text = message.timeString,
                             fontSize = 10.sp,
                             color = Color(0xFF5A6B58)
                         )
@@ -252,11 +249,3 @@ private fun AiResponseBubble(
     }
 }
 
-// Helper: returns current time as "h:mm a" string
-private fun currentTimeString(): String {
-    return try {
-        LocalTime.now().format(DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault()))
-    } catch (e: Exception) {
-        ""
-    }
-}
