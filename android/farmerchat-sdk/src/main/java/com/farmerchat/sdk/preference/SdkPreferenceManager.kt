@@ -40,6 +40,14 @@ internal class SdkPreferenceManager(context: Context) {
                 prefs.getString(KEY_REFRESH_TOKEN, null) != null &&
                 prefs.getString(KEY_USER_ID, null) != null
 
+    fun saveSelectedLanguage(language: String) {
+        prefs.edit().putString(KEY_SELECTED_LANGUAGE, language).apply()
+    }
+
+    fun getSelectedLanguage(): String? = prefs.getString(KEY_SELECTED_LANGUAGE, null)
+
+    fun hasSelectedLanguage(): Boolean = prefs.getString(KEY_SELECTED_LANGUAGE, null) != null
+
     fun clear() {
         prefs.edit().clear().apply()
     }
@@ -50,6 +58,7 @@ internal class SdkPreferenceManager(context: Context) {
         private const val KEY_REFRESH_TOKEN = "refresh_token"
         private const val KEY_USER_ID = "user_id"
         private const val KEY_DEVICE_ID = "device_id"
+        private const val KEY_SELECTED_LANGUAGE = "selected_language"
 
         private fun createPrefs(context: Context): SharedPreferences {
             return try {

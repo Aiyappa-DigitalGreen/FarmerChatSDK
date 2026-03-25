@@ -20,7 +20,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
-import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,47 +43,25 @@ internal fun SuggestedQuestionsSection(
     val extColors = LocalSdkExtendedColors.current
     val config = runCatching { FarmerChatSdk.config }.getOrNull()
     val headerText = config?.followUpHeaderText ?: "Related questions"
-    val showIcon = config?.showFollowUpHeaderIcon != false
 
-    Column(modifier = modifier.fillMaxWidth().padding(top = 12.dp)) {
+    Column(modifier = modifier.fillMaxWidth().padding(top = 10.dp)) {
         // Section header
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
-            modifier = Modifier.padding(start = 2.dp, bottom = 8.dp)
-        ) {
-            if (showIcon) {
-                Box(
-                    modifier = Modifier
-                        .size(18.dp)
-                        .clip(CircleShape)
-                        .background(extColors.followUpButtonBackground.copy(alpha = 0.14f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Lightbulb,
-                        contentDescription = null,
-                        tint = extColors.followUpButtonBackground,
-                        modifier = Modifier.size(11.dp)
-                    )
-                }
-            }
-            Text(
-                text = headerText,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 11.sp
-            )
-        }
+        Text(
+            text = headerText,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 10.sp,
+            modifier = Modifier.padding(start = 2.dp, bottom = 6.dp)
+        )
 
-        // Horizontal scrollable pill chips
+        // Horizontal scrollable dark pill chips
         LazyRow(
             contentPadding = PaddingValues(start = 2.dp, end = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             itemsIndexed(questions.take(5)) { index, question ->
-                FollowUpPill(
+                FollowUpChip(
                     question = question,
                     background = extColors.followUpCardBackground,
                     textColor = extColors.followUpText,
@@ -100,7 +76,7 @@ internal fun SuggestedQuestionsSection(
 }
 
 @Composable
-private fun FollowUpPill(
+private fun FollowUpChip(
     question: String,
     background: Color,
     textColor: Color,
@@ -109,21 +85,16 @@ private fun FollowUpPill(
 ) {
     Row(
         modifier = Modifier
-            .widthIn(min = 140.dp, max = 220.dp)
-            .shadow(
-                elevation = 3.dp,
-                shape = RoundedCornerShape(50.dp),
-                spotColor = accentColor.copy(alpha = 0.12f)
-            )
+            .widthIn(min = 130.dp, max = 210.dp)
             .clip(RoundedCornerShape(50.dp))
             .background(background)
             .border(
                 width = 1.dp,
-                color = accentColor.copy(alpha = 0.18f),
+                color = accentColor.copy(alpha = 0.25f),
                 shape = RoundedCornerShape(50.dp)
             )
             .clickable(onClick = onClick)
-            .padding(start = 14.dp, end = 10.dp, top = 9.dp, bottom = 9.dp),
+            .padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -133,11 +104,13 @@ private fun FollowUpPill(
             color = textColor,
             maxLines = 2,
             lineHeight = 16.sp,
+            fontSize = 12.sp,
             modifier = Modifier.weight(1f)
         )
         Box(
             modifier = Modifier
-                .size(26.dp)
+                .padding(start = 6.dp)
+                .size(24.dp)
                 .clip(CircleShape)
                 .background(accentColor),
             contentAlignment = Alignment.Center
@@ -146,7 +119,7 @@ private fun FollowUpPill(
                 imageVector = Icons.AutoMirrored.Outlined.Send,
                 contentDescription = "Ask",
                 tint = Color.White,
-                modifier = Modifier.size(13.dp)
+                modifier = Modifier.size(12.dp)
             )
         }
     }

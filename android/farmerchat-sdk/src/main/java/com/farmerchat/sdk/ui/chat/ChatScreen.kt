@@ -5,12 +5,14 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -42,9 +44,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +59,10 @@ import com.farmerchat.sdk.ui.chat.udf.ChatAction
 import com.farmerchat.sdk.ui.components.VoiceInputSheet
 import com.farmerchat.sdk.ui.components.rememberPhotoInputLaunchers
 import com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors
+import com.farmerchat.sdk.ui.theme.SdkDarkSurface
+import com.farmerchat.sdk.ui.theme.SdkGreen500
+import com.farmerchat.sdk.ui.theme.SdkGreenAccent
+import com.farmerchat.sdk.ui.theme.SdkTextSecondary
 import com.farmerchat.sdk.utils.AudioPlayback
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -144,14 +148,12 @@ internal fun ChatScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Avatar circle with gradient
+                        // Avatar circle
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
-                                .background(
-                                    color = Color.White.copy(alpha = 0.22f),
-                                    shape = CircleShape
-                                ),
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(primaryColor),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -163,7 +165,7 @@ internal fun ChatScreen(
                         Column {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(7.dp)
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 Text(
                                     text = config?.chatTitle ?: "FarmerChat",
@@ -171,17 +173,18 @@ internal fun ChatScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = extColors.topBarTitle
                                 )
-                                // Online indicator — white dot visible on green top bar
-                                Surface(
-                                    modifier = Modifier.size(8.dp),
-                                    shape = CircleShape,
-                                    color = Color(0xFF69F0AE)
-                                ) {}
+                                // Online indicator
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(SdkGreenAccent)
+                                )
                             }
                             Text(
                                 text = config?.chatSubtitle ?: "AI Farm Assistant",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = extColors.topBarTitle.copy(alpha = 0.72f),
+                                color = extColors.topBarSubtitle,
                                 fontSize = 11.sp
                             )
                         }
@@ -208,20 +211,8 @@ internal fun ChatScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                ),
-                modifier = Modifier.drawBehind {
-                    drawRect(
-                        brush = Brush.linearGradient(
-                            colors = listOf(
-                                extColors.topBarBackground,
-                                extColors.topBarBackground.copy(alpha = 0.88f)
-                            ),
-                            start = Offset(0f, 0f),
-                            end = Offset(size.width, size.height)
-                        )
-                    )
-                }
+                    containerColor = extColors.topBarBackground
+                )
             )
         },
         bottomBar = {
@@ -252,11 +243,24 @@ internal fun ChatScreen(
             }
         }
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            // Optional weather widget
+            val weatherTemp = config?.weatherTemp
+            val weatherLocation = config?.weatherLocation
+            val cropName = config?.cropName
+            if (!weatherTemp.isNullOrEmpty()) {
+                WeatherWidget(
+                    weatherTemp = weatherTemp,
+                    weatherLocation = weatherLocation,
+                    cropName = cropName
+                )
+            }
+
+            // Messages
             when {
                 state.isLoading && state.messages.isEmpty() -> {
                     Column { repeat(3) { ShimmerBlock() } }
@@ -299,13 +303,65 @@ internal fun ChatScreen(
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(
             onDismissRequest = { showImageSourceSheet = false },
-            sheetState = sheetState
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface
         ) {
             ImageSourcePickerSheet(
                 onCameraSelected = { photoLaunchers.launchCamera() },
                 onGallerySelected = { photoLaunchers.launchGallery() },
                 onDismiss = { showImageSourceSheet = false }
             )
+        }
+    }
+}
+
+@Composable
+private fun WeatherWidget(
+    weatherTemp: String,
+    weatherLocation: String?,
+    cropName: String?
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(SdkDarkSurface)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "☀️  $weatherTemp",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White,
+                fontSize = 14.sp
+            )
+            if (!weatherLocation.isNullOrEmpty()) {
+                Text(
+                    text = "📍  $weatherLocation",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = SdkTextSecondary,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+        }
+        if (!cropName.isNullOrEmpty()) {
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = SdkGreen500.copy(alpha = 0.18f)
+            ) {
+                Text(
+                    text = "🌾  $cropName",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = SdkGreen500,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 12.sp,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                )
+            }
         }
     }
 }

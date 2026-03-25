@@ -38,7 +38,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.input.ImeAction
@@ -67,15 +66,7 @@ internal fun ChatInputBar(
     val hintText = config?.inputHintText ?: "Ask about your crops..."
 
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = 16.dp,
-                shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-                spotColor = Color.Black.copy(alpha = 0.08f),
-                ambientColor = Color.Black.copy(alpha = 0.04f)
-            ),
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        modifier = modifier.fillMaxWidth(),
         color = extColors.inputBarBackground
     ) {
         Column {
@@ -86,13 +77,13 @@ internal fun ChatInputBar(
                 exit = slideOutVertically(targetOffsetY = { it })
             ) {
                 selectedImageUri?.let { uri ->
-                    Box(modifier = Modifier.padding(start = 20.dp, top = 12.dp)) {
+                    Box(modifier = Modifier.padding(start = 16.dp, top = 10.dp)) {
                         AsyncImage(
                             model = uri,
                             contentDescription = "Selected image",
                             modifier = Modifier
-                                .size(78.dp)
-                                .clip(RoundedCornerShape(14.dp)),
+                                .size(72.dp)
+                                .clip(RoundedCornerShape(12.dp)),
                             contentScale = ContentScale.Crop
                         )
                         IconButton(
@@ -100,7 +91,7 @@ internal fun ChatInputBar(
                             modifier = Modifier
                                 .size(22.dp)
                                 .align(Alignment.TopEnd)
-                                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                                .background(Color.Black.copy(alpha = 0.65f), CircleShape)
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Close,
@@ -116,15 +107,15 @@ internal fun ChatInputBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 14.dp, top = 12.dp, bottom = 14.dp),
-                verticalAlignment = Alignment.Bottom
+                    .padding(start = 14.dp, end = 12.dp, top = 10.dp, bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Pill-shaped text field using TextField (filled, no border)
+                // Pill-shaped text field
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f))
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
                     TextField(
                         value = text,
@@ -142,9 +133,12 @@ internal fun ChatInputBar(
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = Color.Transparent,
                             unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent
+                            disabledIndicatorColor = Color.Transparent,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         keyboardOptions = KeyboardOptions(
                             capitalization = KeyboardCapitalization.Sentences,
@@ -186,6 +180,7 @@ internal fun ImageSourcePickerSheet(
         Text(
             text = "Add Photo",
             style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 12.dp)
         )
         Row(
@@ -213,7 +208,8 @@ internal fun ImageSourcePickerSheet(
                     }
                 }
                 Spacer(Modifier.height(6.dp))
-                Text("Camera", style = MaterialTheme.typography.labelMedium)
+                Text("Camera", style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface)
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(
@@ -236,7 +232,8 @@ internal fun ImageSourcePickerSheet(
                     }
                 }
                 Spacer(Modifier.height(6.dp))
-                Text("Gallery", style = MaterialTheme.typography.labelMedium)
+                Text("Gallery", style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface)
             }
         }
         Spacer(Modifier.height(12.dp))

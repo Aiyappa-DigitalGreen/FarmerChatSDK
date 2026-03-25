@@ -169,5 +169,17 @@ data class FarmerChatConfig(
     /** Background color of the "Ask" button on each card. Null = primaryColor. */
     val followUpButtonColor: Long? = null,
     /** Text color of the "Ask" button. Default: white. */
-    val followUpButtonTextColor: Long = 0xFFFFFFFFL
+    val followUpButtonTextColor: Long = 0xFFFFFFFFL,
+
+    // ── Weather widget (optional) ─────────────────────────────────────────────
+    /** Weather summary shown in chat header, e.g. "28°C Sunny". Null = widget hidden. */
+    val weatherTemp: String? = null,
+    /** Location text below weather, e.g. "Coorg, Karnataka". */
+    val weatherLocation: String? = null,
+    /** Active crop chip label, e.g. "Rice". */
+    val cropName: String? = null,
+
+    // ── Language selection ────────────────────────────────────────────────────
+    /** When true, a language selection screen is shown before the chat on first launch. */
+    val showLanguageSelection: Boolean = false
 )

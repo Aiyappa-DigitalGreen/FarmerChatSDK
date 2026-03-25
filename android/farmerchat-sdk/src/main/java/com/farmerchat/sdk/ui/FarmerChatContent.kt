@@ -2,18 +2,22 @@ package com.farmerchat.sdk.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.farmerchat.sdk.FarmerChatSdk
+import com.farmerchat.sdk.preference.SdkPreferenceManager
 import com.farmerchat.sdk.ui.chat.ChatScreen
 import com.farmerchat.sdk.ui.history.HistoryScreen
+import com.farmerchat.sdk.ui.language.LanguageSelectionScreen
 
 private object Routes {
-    const val CHAT = "chat"
-    const val HISTORY = "history"
+    const val LANGUAGE   = "language"
+    const val CHAT       = "chat"
+    const val HISTORY    = "history"
     const val CHAT_FROM_HISTORY = "chat/{conversationId}"
     fun chatFromHistory(conversationId: String) = "chat/$conversationId"
 }
@@ -29,13 +33,29 @@ internal fun FarmerChatNavHost(
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val navController = rememberNavController()
+
+    val config = runCatching { FarmerChatSdk.config }.getOrNull()
+    val prefs  = SdkPreferenceManager(context)
+    val showLanguage = config?.showLanguageSelection == true && !prefs.hasSelectedLanguage()
+    val startDest = if (showLanguage) Routes.LANGUAGE else Routes.CHAT
 
     NavHost(
         navController = navController,
-        startDestination = Routes.CHAT,
+        startDestination = startDest,
         modifier = modifier
     ) {
+        composable(Routes.LANGUAGE) {
+            LanguageSelectionScreen(
+                onLanguageSelected = {
+                    navController.navigate(Routes.CHAT) {
+                        popUpTo(Routes.LANGUAGE) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(Routes.CHAT) {
             ChatScreen(
                 conversationId = startConversationId,
@@ -51,8 +71,6 @@ internal fun FarmerChatNavHost(
             HistoryScreen(
                 onNavigateUp = { navController.popBackStack() },
                 onConversationSelected = { conversationId ->
-                    // Pop HISTORY off the stack so pressing back from the loaded
-                    // conversation returns to the main chat screen, not closes the SDK.
                     navController.navigate(Routes.chatFromHistory(conversationId)) {
                         popUpTo(Routes.HISTORY) { inclusive = true }
                     }
@@ -71,7 +89,6 @@ internal fun FarmerChatNavHost(
                     FarmerChatSdk.config.analyticsListener?.onHistoryOpened()
                     navController.navigate(Routes.HISTORY)
                 },
-                // Nothing below on the stack — back always closes the SDK
                 onNavigateUp = { if (!navController.popBackStack()) onClose() }
             )
         }

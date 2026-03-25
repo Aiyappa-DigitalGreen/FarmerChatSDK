@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.farmerchat.sdk.ui.theme.LocalSdkExtendedColors
@@ -44,14 +43,36 @@ internal fun PrimaryInputButtons(
         when {
             isLoading -> {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(30.dp),
+                    modifier = Modifier.size(46.dp),
                     strokeWidth = 2.5.dp,
                     color = sendColor
                 )
             }
 
             !hasText -> {
-                // Camera button — circle with subtle background
+                // Large prominent mic button (matches design)
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .shadow(elevation = 8.dp, shape = CircleShape,
+                            spotColor = sendColor.copy(alpha = 0.5f),
+                            ambientColor = sendColor.copy(alpha = 0.25f))
+                        .clip(CircleShape)
+                        .background(sendColor)
+                        .clickable(onClick = onMicClick),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Mic,
+                        contentDescription = "Voice input",
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                Spacer(Modifier.width(8.dp))
+
+                // Small camera button
                 Box(
                     modifier = Modifier
                         .size(40.dp)
@@ -67,47 +88,18 @@ internal fun PrimaryInputButtons(
                         modifier = Modifier.size(20.dp)
                     )
                 }
-
-                Spacer(Modifier.width(8.dp))
-
-                // Mic button — circle with subtle background
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .clickable(onClick = onMicClick),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Mic,
-                        contentDescription = "Voice input",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
             }
 
             else -> {
-                // Gradient send button
+                // Send button — same large size as mic
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
-                        .shadow(
-                            elevation = 6.dp,
-                            shape = CircleShape,
+                        .size(48.dp)
+                        .shadow(elevation = 8.dp, shape = CircleShape,
                             spotColor = sendColor.copy(alpha = 0.5f),
-                            ambientColor = sendColor.copy(alpha = 0.25f)
-                        )
+                            ambientColor = sendColor.copy(alpha = 0.25f))
                         .clip(CircleShape)
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    sendColor,
-                                    sendColor.copy(alpha = 0.78f)
-                                )
-                            )
-                        )
+                        .background(sendColor)
                         .clickable(onClick = onSendClick),
                     contentAlignment = Alignment.Center
                 ) {
@@ -115,7 +107,7 @@ internal fun PrimaryInputButtons(
                         imageVector = Icons.AutoMirrored.Filled.Send,
                         contentDescription = "Send message",
                         tint = Color.White,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                 }
             }

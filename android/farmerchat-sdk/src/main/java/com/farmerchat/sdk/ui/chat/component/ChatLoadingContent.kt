@@ -8,7 +8,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +30,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalConfiguration
@@ -46,62 +44,64 @@ internal fun ChatLoadingContent(modifier: Modifier = Modifier) {
     val config = runCatching { FarmerChatSdk.config }.getOrNull()
     val avatarEmoji = config?.aiAvatarEmoji ?: "🌱"
     val primaryColor = MaterialTheme.colorScheme.primary
-    val bubbleShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 5.dp, bottomEnd = 20.dp)
+    val bubbleShape = RoundedCornerShape(topStart = 4.dp, topEnd = 18.dp, bottomStart = 18.dp, bottomEnd = 18.dp)
 
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.Bottom
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        // Gradient avatar
-        Box(
-            modifier = Modifier
-                .size(38.dp)
-                .shadow(3.dp, CircleShape, spotColor = primaryColor.copy(alpha = 0.18f))
-                .clip(CircleShape)
-                .background(Brush.linearGradient(colors = listOf(primaryColor.copy(alpha = 0.85f), primaryColor.copy(alpha = 0.55f)))),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = avatarEmoji, fontSize = 18.sp)
-        }
-
-        Spacer(Modifier.width(10.dp))
-
-        // Typing bubble
+        // Typing bubble — matches AiResponseBubble style
         Surface(
             shape = bubbleShape,
             color = extColors.aiBubbleBackground,
-            shadowElevation = 6.dp,
-            modifier = Modifier.border(
-                0.5.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                bubbleShape
-            )
+            shadowElevation = 4.dp
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 18.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val infiniteTransition = rememberInfiniteTransition(label = "typing")
-                repeat(3) { index ->
-                    val offsetY by infiniteTransition.animateFloat(
-                        initialValue = 0f,
-                        targetValue = -7f,
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(380, delayMillis = index * 120, easing = FastOutSlowInEasing),
-                            repeatMode = RepeatMode.Reverse
-                        ),
-                        label = "dot_$index"
-                    )
+            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
+                // Header row
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
-                            .size(8.dp)
-                            .offset(y = offsetY.dp)
+                            .size(24.dp)
                             .clip(CircleShape)
-                            .background(primaryColor.copy(alpha = 0.65f + index * 0.1f))
+                            .background(primaryColor),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = avatarEmoji, fontSize = 12.sp)
+                    }
+                    Spacer(Modifier.width(7.dp))
+                    Text(
+                        text = config?.chatTitle ?: "FarmerChat AI",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = primaryColor,
+                        fontSize = 11.sp
                     )
+                }
+                Spacer(Modifier.height(12.dp))
+                // Bouncing dots
+                val infiniteTransition = rememberInfiniteTransition(label = "typing")
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    repeat(3) { index ->
+                        val offsetY by infiniteTransition.animateFloat(
+                            initialValue = 0f,
+                            targetValue = -7f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(380, delayMillis = index * 120, easing = FastOutSlowInEasing),
+                                repeatMode = RepeatMode.Reverse
+                            ),
+                            label = "dot_$index"
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .offset(y = offsetY.dp)
+                                .clip(CircleShape)
+                                .background(primaryColor.copy(alpha = 0.55f + index * 0.15f))
+                        )
+                    }
                 }
             }
         }
@@ -121,12 +121,13 @@ internal fun ShimmerBlock(modifier: Modifier = Modifier) {
         label = "shimmer_x"
     )
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val extColors = LocalSdkExtendedColors.current
 
     val shimmerBrush = Brush.linearGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.75f),
-            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            extColors.aiBubbleBackground,
+            extColors.aiBubbleBackground.copy(alpha = 0.5f),
+            extColors.aiBubbleBackground
         ),
         start = Offset(shimmerX, 0f),
         end = Offset(shimmerX + 400f, 0f)
@@ -139,48 +140,35 @@ internal fun ShimmerBlock(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // AI bubble shimmer — LEFT aligned
-        Row(verticalAlignment = Alignment.Top) {
-            Box(
-                modifier = Modifier.size(38.dp).clip(CircleShape).background(shimmerBrush)
-            )
-            Spacer(Modifier.width(10.dp))
-            Column(
-                modifier = Modifier
-                    .widthIn(max = screenWidth * 0.72f)
-                    .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 5.dp, bottomEnd = 20.dp))
-                    .background(shimmerBrush)
-                    .padding(horizontal = 14.dp, vertical = 14.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(13.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f))
-                )
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(13.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f))
-                )
-                Box(
-                    modifier = Modifier.fillMaxWidth(0.55f).height(13.dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.12f))
-                )
-            }
+        Column(
+            modifier = Modifier
+                .widthIn(max = screenWidth * 0.85f)
+                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 18.dp, bottomStart = 18.dp, bottomEnd = 18.dp))
+                .background(shimmerBrush)
+                .padding(horizontal = 14.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(modifier = Modifier.width(80.dp).height(10.dp).clip(RoundedCornerShape(5.dp))
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)))
+            Spacer(Modifier.height(4.dp))
+            Box(modifier = Modifier.fillMaxWidth().height(11.dp).clip(RoundedCornerShape(5.dp))
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)))
+            Box(modifier = Modifier.fillMaxWidth().height(11.dp).clip(RoundedCornerShape(5.dp))
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)))
+            Box(modifier = Modifier.fillMaxWidth(0.6f).height(11.dp).clip(RoundedCornerShape(5.dp))
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)))
         }
 
         // User bubble shimmer — RIGHT aligned
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.Top
+            horizontalArrangement = Arrangement.End
         ) {
             Box(
                 modifier = Modifier
                     .widthIn(min = 100.dp, max = screenWidth * 0.55f)
-                    .height(40.dp)
-                    .clip(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 18.dp, bottomEnd = 5.dp))
+                    .height(42.dp)
+                    .clip(RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 18.dp, bottomEnd = 4.dp))
                     .background(shimmerBrush)
             )
         }
