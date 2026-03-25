@@ -1,5 +1,9 @@
 package com.farmerchat.sdk.ui.chat.component
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -68,29 +72,47 @@ internal fun ChatThreadContent(
         items(state.messages, key = { it.id }) { message ->
             when (message) {
                 is ChatMessage.UserMessage -> {
-                    UserChatBubble(
-                        text = message.text,
-                        imageUri = message.imageUri,
-                        audioUri = message.audioUri,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                    )
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = true,
+                        enter = slideInHorizontally(tween(280)) { it / 2 } + fadeIn(tween(280)),
+                        modifier = Modifier.animateItem(tween(280))
+                    ) {
+                        UserChatBubble(
+                            text = message.text,
+                            imageUri = message.imageUri,
+                            audioUri = message.audioUri,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                        )
+                    }
                 }
 
                 is ChatMessage.AiResponse -> {
-                    AiResponseBubble(
-                        message = message,
-                        isLastAiMessage = message.id == lastAiMessageId,
-                        isListenLoading = state.isLoadingSynthesiseAudio,
-                        isAudioPlaying = state.isAudioPlaying,
-                        onListenClick = onListenClick,
-                        onFollowUpSelected = onFollowUpSelected,
-                        suggestedQuestionIds = state.suggestedQuestionIds,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                    )
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = true,
+                        enter = slideInHorizontally(tween(300)) { -it / 2 } + fadeIn(tween(300)),
+                        modifier = Modifier.animateItem(tween(300))
+                    ) {
+                        AiResponseBubble(
+                            message = message,
+                            isLastAiMessage = message.id == lastAiMessageId,
+                            isListenLoading = state.isLoadingSynthesiseAudio,
+                            isAudioPlaying = state.isAudioPlaying,
+                            onListenClick = onListenClick,
+                            onFollowUpSelected = onFollowUpSelected,
+                            suggestedQuestionIds = state.suggestedQuestionIds,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                        )
+                    }
                 }
 
                 is ChatMessage.LoadingPlaceholder -> {
-                    ChatLoadingContent(modifier = Modifier.padding(vertical = 4.dp))
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = true,
+                        enter = slideInVertically(tween(250)) { it / 2 } + fadeIn(tween(250)),
+                        modifier = Modifier.animateItem(tween(250))
+                    ) {
+                        ChatLoadingContent(modifier = Modifier.padding(vertical = 4.dp))
+                    }
                 }
             }
         }

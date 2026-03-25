@@ -1,5 +1,22 @@
 package com.farmerchat.sdk.ui.language
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,61 +31,58 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.farmerchat.sdk.FarmerChatSdk
-import com.farmerchat.sdk.preference.SdkPreferenceManager
+import com.farmerchat.sdk.base.UiState
+import com.farmerchat.sdk.domain.model.language.SupportedLanguage
+import com.farmerchat.sdk.domain.model.language.SupportedLanguageGroup
 import com.farmerchat.sdk.ui.theme.SdkDarkBg
-import com.farmerchat.sdk.ui.theme.SdkDarkSurface
 import com.farmerchat.sdk.ui.theme.SdkGreen500
 import com.farmerchat.sdk.ui.theme.SdkTextSecondary
-
-private data class Language(
-    val englishName: String,
-    val nativeName: String,
-    val isDefault: Boolean = false
-)
-
-private val supportedLanguages = listOf(
-    Language("English", "English", isDefault = true),
-    Language("Hindi", "हिन्दी"),
-    Language("Kannada", "ಕನ್ನಡ"),
-    Language("Tamil", "தமிழ்"),
-    Language("Telugu", "తెలుగు"),
-    Language("Marathi", "मराठी")
-)
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 internal fun LanguageSelectionScreen(
-    onLanguageSelected: (String) -> Unit
+    onLanguageSelected: (String) -> Unit,
+    viewModel: LanguageViewModel = koinViewModel()
 ) {
-    val context = LocalContext.current
-    val config = runCatching { FarmerChatSdk.config }.getOrNull()
-    var selectedLanguage by remember { mutableStateOf("English") }
+    val state by viewModel.state.collectAsState()
+    val isSubmitting = state.submitState is UiState.Loading
+
+    val headerAlpha = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        headerAlpha.animateTo(1f, animationSpec = tween(600))
+    }
 
     Box(
         modifier = Modifier
@@ -89,106 +103,159 @@ internal fun LanguageSelectionScreen(
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(64.dp))
+            Spacer(Modifier.height(56.dp))
 
-            // Logo circle
+            // Animated logo
+            val logoScale by animateFloatAsState(
+                targetValue = if (headerAlpha.value > 0.5f) 1f else 0.6f,
+                animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                label = "logoScale"
+            )
             Box(
                 modifier = Modifier
-                    .size(72.dp)
+                    .size(80.dp)
+                    .scale(logoScale)
                     .clip(CircleShape)
                     .background(SdkGreen500),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = config?.aiAvatarEmoji ?: "🌱",
-                    fontSize = 32.sp
-                )
+                Text(text = "🌱", fontSize = 36.sp)
             }
 
             Spacer(Modifier.height(20.dp))
 
-            Text(
-                text = config?.chatTitle ?: "FarmerChat AI",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                fontSize = 26.sp
-            )
-            Text(
-                text = config?.chatSubtitle ?: "Smart Farming Assistant",
-                style = MaterialTheme.typography.bodyMedium,
-                color = SdkTextSecondary,
-                fontSize = 14.sp
-            )
-
-            Spacer(Modifier.height(36.dp))
-
-            // Section label
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+            AnimatedVisibility(
+                visible = headerAlpha.value > 0.3f,
+                enter = fadeIn(tween(500)) + slideInVertically { -20 }
             ) {
-                Text(
-                    text = "SELECT YOUR LANGUAGE",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = SdkGreen500,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.5.sp,
-                    fontSize = 11.sp
-                )
-            }
-
-            Spacer(Modifier.height(14.dp))
-
-            // Language grid
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(0.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                items(supportedLanguages) { lang ->
-                    LanguageCard(
-                        language = lang,
-                        isSelected = selectedLanguage == lang.englishName,
-                        onClick = { selectedLanguage = lang.englishName }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "FarmerChat AI",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        fontSize = 26.sp
+                    )
+                    Text(
+                        text = "Choose your preferred language",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = SdkTextSecondary,
+                        fontSize = 14.sp
                     )
                 }
             }
 
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(32.dp))
 
-            // Continue button
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-                    .clip(RoundedCornerShape(26.dp))
-                    .background(SdkGreen500)
-                    .clickable {
-                        SdkPreferenceManager(context).saveSelectedLanguage(selectedLanguage)
-                        onLanguageSelected(selectedLanguage)
-                    },
-                contentAlignment = Alignment.Center
+            AnimatedVisibility(
+                visible = headerAlpha.value > 0.5f,
+                enter = fadeIn(tween(400))
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Continue",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White,
-                        fontSize = 16.sp
+                        text = "SELECT YOUR LANGUAGE",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = SdkGreen500,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.5.sp,
+                        fontSize = 11.sp
                     )
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(18.dp)
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // Content based on state
+            Box(modifier = Modifier.weight(1f)) {
+                when (val langState = state.languageState) {
+                    is UiState.Loading, UiState.Idle -> {
+                        LanguageLoadingContent()
+                    }
+                    is UiState.Error -> {
+                        LanguageErrorContent(
+                            message = langState.message ?: "Failed to load languages",
+                            onRetry = { viewModel.fetchLanguages() }
+                        )
+                    }
+                    is UiState.Success -> {
+                        val allLanguages = langState.data.flatMap { it.languages }
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(2),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            contentPadding = PaddingValues(bottom = 16.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            itemsIndexed(allLanguages) { index, lang ->
+                                val itemAlpha = remember { Animatable(0f) }
+                                LaunchedEffect(lang.id) {
+                                    kotlinx.coroutines.delay(index * 60L)
+                                    itemAlpha.animateTo(1f, tween(300))
+                                }
+                                LanguageCard(
+                                    language = lang,
+                                    isSelected = state.selectedLanguageId == lang.id,
+                                    alpha = itemAlpha.value,
+                                    onClick = { viewModel.selectLanguage(lang) }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // Continue button
+            val canContinue = state.selectedLanguageId != null &&
+                    state.languageState is UiState.Success &&
+                    !isSubmitting
+
+            AnimatedVisibility(
+                visible = headerAlpha.value > 0.7f,
+                enter = fadeIn(tween(500)) + slideInVertically { 60 }
+            ) {
+                Button(
+                    onClick = { viewModel.submitLanguage(onSuccess = onLanguageSelected) },
+                    enabled = canContinue,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(26.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = SdkGreen500,
+                        disabledContainerColor = SdkGreen500.copy(alpha = 0.4f)
                     )
+                ) {
+                    if (isSubmitting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp,
+                            color = Color.White
+                        )
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = "Continue",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White,
+                                fontSize = 16.sp
+                            )
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -198,22 +265,92 @@ internal fun LanguageSelectionScreen(
 }
 
 @Composable
+private fun LanguageLoadingContent() {
+    val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
+    val shimmerAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.7f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "shimmerAlpha"
+    )
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(bottom = 16.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        items(6) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(72.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color(0xFF1A2318).copy(alpha = shimmerAlpha))
+                    .border(1.dp, Color.White.copy(alpha = 0.06f), RoundedCornerShape(14.dp))
+            )
+        }
+    }
+}
+
+@Composable
+private fun LanguageErrorContent(message: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "⚠️",
+            fontSize = 48.sp,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = SdkTextSecondary,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(16.dp))
+        TextButton(onClick = onRetry) {
+            Text(
+                text = "Retry",
+                color = SdkGreen500,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
+@Composable
 private fun LanguageCard(
-    language: Language,
+    language: SupportedLanguage,
     isSelected: Boolean,
+    alpha: Float = 1f,
     onClick: () -> Unit
 ) {
+    val scale by animateFloatAsState(
+        targetValue = if (isSelected) 1.03f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "cardScale"
+    )
     val borderColor = if (isSelected) SdkGreen500 else Color.White.copy(alpha = 0.1f)
-    val bgColor = if (isSelected) SdkGreen500.copy(alpha = 0.15f) else SdkDarkSurface
+    val bgColor = if (isSelected) SdkGreen500.copy(alpha = 0.15f) else Color(0xFF1A2318)
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .scale(scale)
             .clip(RoundedCornerShape(14.dp))
-            .background(bgColor)
+            .background(bgColor.copy(alpha = bgColor.alpha * alpha))
             .border(
                 width = if (isSelected) 1.5.dp else 1.dp,
-                color = borderColor,
+                color = borderColor.copy(alpha = borderColor.alpha * alpha),
                 shape = RoundedCornerShape(14.dp)
             )
             .clickable(onClick = onClick)
@@ -231,30 +368,31 @@ private fun LanguageCard(
                 .weight(1f)
                 .padding(start = 8.dp)
         ) {
+            val displayName = language.displayName.ifBlank { language.name }
+            val nativeName = language.name
+
             Text(
-                text = language.englishName,
+                text = displayName,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.White,
+                color = Color.White.copy(alpha = alpha),
                 fontSize = 13.sp
             )
-            if (language.nativeName != language.englishName) {
+            if (nativeName != displayName) {
                 Text(
-                    text = language.nativeName,
+                    text = nativeName,
                     style = MaterialTheme.typography.bodySmall,
-                    color = SdkTextSecondary,
-                    fontSize = 11.sp
-                )
-            } else {
-                Text(
-                    text = "Default",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isSelected) SdkGreen500 else SdkTextSecondary,
+                    color = SdkTextSecondary.copy(alpha = SdkTextSecondary.alpha * alpha),
                     fontSize = 11.sp
                 )
             }
         }
-        if (isSelected) {
+
+        AnimatedVisibility(
+            visible = isSelected,
+            enter = scaleIn(spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn(),
+            exit = scaleOut() + fadeOut()
+        ) {
             Box(
                 modifier = Modifier
                     .size(20.dp)
@@ -270,5 +408,19 @@ private fun LanguageCard(
                 )
             }
         }
+
+        if (!isSelected) {
+            Spacer(Modifier.width(20.dp))
+        }
+    }
+}
+
+// LazyGrid items helper (no key version for shimmer)
+private fun androidx.compose.foundation.lazy.grid.LazyGridScope.items(
+    count: Int,
+    itemContent: @Composable androidx.compose.foundation.lazy.grid.LazyGridItemScope.(index: Int) -> Unit
+) {
+    repeat(count) { index ->
+        item { itemContent(index) }
     }
 }

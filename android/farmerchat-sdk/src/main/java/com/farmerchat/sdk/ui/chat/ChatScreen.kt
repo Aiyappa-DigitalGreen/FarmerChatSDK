@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -72,6 +73,7 @@ import org.koin.core.parameter.parametersOf
 internal fun ChatScreen(
     conversationId: String?,
     onNavigateToHistory: () -> Unit,
+    onNavigateToLanguage: (() -> Unit)?,
     onNavigateUp: () -> Unit,
     viewModel: ChatViewModel = koinViewModel(parameters = { parametersOf(conversationId) })
 ) {
@@ -200,6 +202,15 @@ internal fun ChatScreen(
                     }
                 },
                 actions = {
+                    if (onNavigateToLanguage != null) {
+                        IconButton(onClick = onNavigateToLanguage) {
+                            Icon(
+                                imageVector = Icons.Filled.Language,
+                                contentDescription = "Change language",
+                                tint = extColors.topBarTitle
+                            )
+                        }
+                    }
                     if (config?.showHistoryButton != false) {
                         IconButton(onClick = onNavigateToHistory) {
                             Icon(

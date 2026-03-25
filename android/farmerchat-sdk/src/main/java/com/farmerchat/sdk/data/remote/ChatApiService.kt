@@ -3,12 +3,26 @@ package com.farmerchat.sdk.data.remote
 import com.farmerchat.sdk.domain.model.chat.*
 import com.farmerchat.sdk.domain.model.conversation.NewConversationRequest
 import com.farmerchat.sdk.domain.model.conversation.NewConversationResponse
+import com.farmerchat.sdk.domain.model.language.SetPreferredLanguageRequest
+import com.farmerchat.sdk.domain.model.language.SetPreferredLanguageResponse
+import com.farmerchat.sdk.domain.model.language.SupportedLanguageGroup
 import com.farmerchat.sdk.domain.model.voice.GetVoiceResponse
 import com.farmerchat.sdk.domain.model.voice.SetVoiceRequest
 import retrofit2.Response
 import retrofit2.http.*
 
 internal interface ChatApiService {
+
+    @GET("api/language/v2/country_wise_supported_languages/")
+    suspend fun getSupportedLanguages(
+        @Query("country_code") countryCode: String = "",
+        @Query("state") state: String = ""
+    ): Response<List<SupportedLanguageGroup>>
+
+    @POST("api/user/set_preferred_language/")
+    suspend fun setPreferredLanguage(
+        @Body request: SetPreferredLanguageRequest
+    ): Response<SetPreferredLanguageResponse>
 
     @POST("api/chat/new_conversation/")
     suspend fun newConversation(
