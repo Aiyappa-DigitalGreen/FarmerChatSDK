@@ -168,61 +168,64 @@ private fun AiResponseBubble(
         topStart = 4.dp, topEnd = r, bottomStart = r, bottomEnd = r
     )
 
-    Column(modifier = modifier.widthIn(max = maxWidth)) {
-        // Card bubble with shadow elevation=6dp
-        Box(
-            modifier = Modifier
-                .shadow(
-                    elevation = 6.dp,
-                    shape = bubbleShape,
-                    ambientColor = Color(0xFF1A2318).copy(alpha = 0.3f),
-                    spotColor = Color(0xFF1A2318).copy(alpha = 0.4f)
-                )
-                .clip(bubbleShape)
-                .background(Color(0xFF1A2318))
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-                // Header row: 22dp green circle + "FarmerChat AI" green semibold + Spacer + timestamp
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(22.dp)
-                            .clip(CircleShape)
-                            .background(SdkGreen500),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = avatarEmoji, fontSize = 11.sp)
-                    }
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = aiName,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = SdkGreen500,
-                        fontSize = 11.sp
+    Column(modifier = modifier.fillMaxWidth()) {
+        // Bubble constrained to maxWidth
+        Box(modifier = Modifier.widthIn(max = maxWidth)) {
+            // Card bubble with shadow elevation=6dp
+            Box(
+                modifier = Modifier
+                    .shadow(
+                        elevation = 6.dp,
+                        shape = bubbleShape,
+                        ambientColor = Color(0xFF1A2318).copy(alpha = 0.3f),
+                        spotColor = Color(0xFF1A2318).copy(alpha = 0.4f)
                     )
-                    Spacer(Modifier.weight(1f))
-                    // Timestamp on same line as name, right side
-                    Text(
-                        text = currentTimeString(),
-                        fontSize = 10.sp,
-                        color = Color(0xFF5A6B58)
+                    .clip(bubbleShape)
+                    .background(Color(0xFF1A2318))
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
+                    // Header row: 22dp green circle + "FarmerChat AI" green semibold + Spacer + timestamp
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(22.dp)
+                                .clip(CircleShape)
+                                .background(SdkGreen500),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = avatarEmoji, fontSize = 11.sp)
+                        }
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = aiName,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = SdkGreen500,
+                            fontSize = 11.sp
+                        )
+                        Spacer(Modifier.weight(1f))
+                        // Timestamp on same line as name, right side
+                        Text(
+                            text = currentTimeString(),
+                            fontSize = 10.sp,
+                            color = Color(0xFF5A6B58)
+                        )
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    MarkdownText(
+                        markdown = message.text,
+                        color = Color(0xFFDCE8DA),
+                        fontSize = fontSize,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
-                Spacer(Modifier.height(10.dp))
-                MarkdownText(
-                    markdown = message.text,
-                    color = Color(0xFFDCE8DA),
-                    fontSize = fontSize,
-                    modifier = Modifier.fillMaxWidth()
-                )
             }
         }
 
-        // Actions row
+        // Actions row — full width, not constrained
         ChatResponseActions(
             responseText = message.text,
             messageId = message.messageId,
@@ -231,7 +234,7 @@ private fun AiResponseBubble(
             onListenClick = onListenClick
         )
 
-        // Follow-up questions
+        // Follow-up questions — full width so chips aren't clipped
         if (isLastAiMessage && !message.followUpQuestions.isNullOrEmpty()) {
             val ids = suggestedQuestionIds ?: message.followUpQuestionIds
             SuggestedQuestionsSection(

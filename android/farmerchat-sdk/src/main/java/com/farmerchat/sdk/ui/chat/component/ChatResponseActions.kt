@@ -39,9 +39,9 @@ internal fun ChatResponseActions(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 2.dp, vertical = 2.dp),
+            .padding(start = 2.dp, end = 8.dp, top = 6.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         // Listen button (TTS)
         if (!messageId.isNullOrEmpty()) {
@@ -51,8 +51,6 @@ internal fun ChatResponseActions(
                 onClick = onListenClick
             )
         }
-
-        Spacer(Modifier.width(2.dp))
 
         // Copy button
         Box(

@@ -259,18 +259,6 @@ internal fun ChatScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Optional weather widget
-            val weatherTemp = config?.weatherTemp
-            val weatherLocation = config?.weatherLocation
-            val cropName = config?.cropName
-            if (!weatherTemp.isNullOrEmpty()) {
-                WeatherWidget(
-                    weatherTemp = weatherTemp,
-                    weatherLocation = weatherLocation,
-                    cropName = cropName
-                )
-            }
-
             // Messages
             when {
                 state.isLoading && state.messages.isEmpty() -> {
