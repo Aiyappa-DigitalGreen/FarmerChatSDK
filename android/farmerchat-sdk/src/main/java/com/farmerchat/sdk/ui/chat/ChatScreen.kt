@@ -4,6 +4,11 @@ import android.Manifest
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -205,7 +210,7 @@ internal fun ChatScreen(
                     if (onNavigateToLanguage != null) {
                         IconButton(onClick = onNavigateToLanguage) {
                             Icon(
-                                imageVector = Icons.Filled.Language,
+                                imageVector = Icons.Outlined.Translate,
                                 contentDescription = "Change language",
                                 tint = Color.White
                             )
@@ -260,11 +265,17 @@ internal fun ChatScreen(
                 .padding(paddingValues)
         ) {
             // Messages
-            when {
-                state.isLoading && state.messages.isEmpty() -> {
+            AnimatedContent(
+                targetState = state.isLoading && state.messages.isEmpty(),
+                transitionSpec = {
+                    fadeIn(tween(320)) togetherWith fadeOut(tween(200))
+                },
+                modifier = Modifier.fillMaxSize(),
+                label = "chatContent"
+            ) { isShimmer ->
+                if (isShimmer) {
                     Column { repeat(3) { ShimmerBlock() } }
-                }
-                else -> {
+                } else {
                     ChatThreadContent(
                         state = state,
                         listState = listState,

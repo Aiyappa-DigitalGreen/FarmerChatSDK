@@ -1,5 +1,10 @@
 package com.farmerchat.sdk.ui.history
 
+import androidx.compose.animation.core.Animatable
+import kotlinx.coroutines.launch
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -46,8 +52,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
@@ -193,15 +201,22 @@ internal fun HistoryScreen(
                             )
                         }
                         filteredGrouped.forEach { (group, items) ->
-                            item(key = "header_$group") { GroupHeader(label = group) }
-                            itemsIndexed(items = items, key = { _, item -> item.conversation_id }) { _, item ->
+                            item(key = "header_$group") {
+                                GroupHeader(
+                                    label = group,
+                                    modifier = Modifier.animateItem(tween(300))
+                                )
+                            }
+                            itemsIndexed(items = items, key = { _, item -> item.conversation_id }) { index, item ->
                                 ConversationCard(
                                     item = item,
+                                    index = index,
                                     onClick = {
                                         FarmerChatSdk.config.analyticsListener
                                             ?.onHistoryConversationSelected(item.conversation_id)
                                         onConversationSelected(item.conversation_id)
-                                    }
+                                    },
+                                    modifier = Modifier.animateItem(tween(300))
                                 )
                             }
                         }
@@ -264,8 +279,7 @@ private fun SearchBar(query: String, onQueryChange: (String) -> Unit, modifier: 
 }
 
 @Composable
-private fun GroupHeader(label: String) {
-    // "TODAY"/"YESTERDAY" 10sp uppercase Color(0xFF4A5E48) letterSpacing=1.5sp, padding start=20dp
+private fun GroupHeader(label: String, modifier: Modifier = Modifier) {
     Text(
         text = label.uppercase(),
         style = MaterialTheme.typography.labelSmall,
@@ -273,7 +287,7 @@ private fun GroupHeader(label: String) {
         color = HistoryGroupLabel,
         letterSpacing = 1.5.sp,
         fontSize = 10.sp,
-        modifier = Modifier.padding(start = 20.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)
+        modifier = modifier.padding(start = 20.dp, end = 16.dp, top = 12.dp, bottom = 4.dp)
     )
 }
 
@@ -313,13 +327,31 @@ private fun topicTag(item: ConversationListItem): Pair<String, Color>? {
 }
 
 @Composable
-private fun ConversationCard(item: ConversationListItem, onClick: () -> Unit) {
+private fun ConversationCard(
+    item: ConversationListItem,
+    index: Int = 0,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val icon = iconForConversation(item)
     val tag  = topicTag(item)
 
+    // Staggered entrance: slide up + fade in
+    val alpha = remember { Animatable(0f) }
+    val offsetY = remember { Animatable(28f) }
+    LaunchedEffect(item.conversation_id) {
+        kotlinx.coroutines.delay(index * 40L)
+        kotlinx.coroutines.coroutineScope {
+            launch { alpha.animateTo(1f, tween(300)) }
+            launch { offsetY.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)) }
+        }
+    }
+
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
+            .alpha(alpha.value)
+            .offset { IntOffset(0, offsetY.value.toInt()) }
             .padding(horizontal = 16.dp, vertical = 4.dp)
             .clip(RoundedCornerShape(14.dp))
             .background(HistoryCardBg)
