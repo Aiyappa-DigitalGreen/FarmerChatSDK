@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -65,6 +66,7 @@ fun FarmerChatFab(
     fabBackgroundColor: Color? = null,
     fabContentColor: Color? = null,
     icon: ImageVector? = null,
+    iconPainter: Painter? = null,
     modifier: Modifier = Modifier
 ) {
     val config = runCatching { FarmerChatSdk.config }.getOrNull()
@@ -127,10 +129,10 @@ fun FarmerChatFab(
             shape = RoundedCornerShape(18.dp),
             modifier = modifier
         ) {
-            if (fabIcon != null) {
-                Icon(imageVector = fabIcon, contentDescription = displayLabel, modifier = Modifier.size(20.dp))
-            } else {
-                Image(
+            when {
+                iconPainter != null -> Icon(painter = iconPainter, contentDescription = displayLabel, modifier = Modifier.size(22.dp))
+                fabIcon != null -> Icon(imageVector = fabIcon, contentDescription = displayLabel, modifier = Modifier.size(20.dp))
+                else -> Image(
                     painter = painterResource(R.drawable.sdk_logo),
                     contentDescription = displayLabel,
                     contentScale = ContentScale.Fit,
@@ -169,10 +171,10 @@ fun FarmerChatFab(
                 contentColor = fabFg,
                 shape = CircleShape
             ) {
-                if (fabIcon != null) {
-                    Icon(imageVector = fabIcon, contentDescription = displayLabel)
-                } else {
-                    Image(
+                when {
+                    iconPainter != null -> Icon(painter = iconPainter, contentDescription = displayLabel, modifier = Modifier.size(28.dp))
+                    fabIcon != null -> Icon(imageVector = fabIcon, contentDescription = displayLabel)
+                    else -> Image(
                         painter = painterResource(R.drawable.sdk_logo),
                         contentDescription = displayLabel,
                         contentScale = ContentScale.Fit,
